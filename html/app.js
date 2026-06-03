@@ -189,11 +189,25 @@ function renderAlloc() {
 }
 
 function renderCountry() {
-  destroy("country");
+  const box = document.getElementById("countryBars");
+  if (!box) return;
   const byZone = {};
   DATA.positions.filter(accFilter).forEach((p) => { const z = zoneOf(p); byZone[z] = (byZone[z] || 0) + posValue(p); });
   const entries = Object.entries(byZone).sort((a, b) => b[1] - a[1]);
-  charts.country = doughnut("countryChart", entries.map((e) => e[0]), entries.map((e) => e[1]));
+  const total = entries.reduce((a, e) => a + e[1], 0) || 1;
+  const colors = doughnutColors();
+  if (!entries.length) { box.innerHTML = `<p class="muted">Aucune position.</p>`; return; }
+  const pcts = entries.map((e) => (e[1] / total) * 100);
+  box.innerHTML = entries.map(([z, v], i) => `
+    <div class="bar-row" title="${EUR.format(v)}">
+      <span class="bar-label">${z}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:0;background:${colors[i % colors.length]}"></span></span>
+      <span class="bar-val">${pcts[i].toFixed(1)} %</span>
+    </div>`).join("");
+  // anim : largeur 0 → cible (tween CSS, style card-resize transitions.dev)
+  requestAnimationFrame(() => {
+    box.querySelectorAll(".bar-fill").forEach((el, i) => { el.style.width = pcts[i].toFixed(1) + "%"; });
+  });
 }
 
 function renderTable() {
@@ -258,8 +272,8 @@ function renderForecast() {
   const p = palette(); Chart.defaults.color = p.tick;
   const k = computeKpis();
   const v0 = k.value || k.invested || 0;
-  const nbMonths = monthsSorted().length || 1;
-  const C = nbMonths ? Math.max(k.invested, 0) / nbMonths : 0; // apport mensuel moyen estimé
+  const monthlyEl = document.getElementById("forecast-monthly");
+  const C = monthlyEl ? Math.max(0, +monthlyEl.value || 0) : 150; // apport mensuel choisi (défaut 150 €)
   const H = forecastYears;
   const year0 = new Date().getFullYear();
   const labels = Array.from({ length: H + 1 }, (_, y) => String(year0 + y));
@@ -286,7 +300,7 @@ function renderForecast() {
       scales: { x: { grid: { color: p.grid } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
   });
   const note = document.getElementById("forecast-note");
-  if (note) note.textContent = `Base : ${EUR.format(v0)} aujourd'hui + ~${EUR.format(C)}/mois d'apports (moyenne historique). Hypothèses de rendement annuel, hors inflation. Projection non contractuelle.`;
+  if (note) note.textContent = `Base : ${EUR.format(v0)} aujourd'hui + ${EUR.format(C)}/mois d'apports sur ${H} ans. Hypothèses de rendement annuel, hors inflation. Projection non contractuelle.`;
 }
 
 function renderAll() {
@@ -416,6 +430,8 @@ async function boot() {
   wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });
   wireTabBar("#range-tabs", (tab) => { currentRange = +tab.dataset.range; });
   wireTabBar("#forecast-tabs", (tab) => { forecastYears = +tab.dataset.years; });
+  const fm = document.getElementById("forecast-monthly");
+  if (fm) fm.addEventListener("input", () => { if (DATA) renderForecast(); });
   wireMlg();
   renderAll();
   renderNews();

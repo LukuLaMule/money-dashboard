@@ -367,7 +367,27 @@ tbody tr:hover { background: rgba(57,255,20,.06); }
 .badge.pea { background: rgba(57,255,20,.15); color: var(--neon); }
 .badge.cto { background: rgba(0,229,255,.15); color: var(--cyan); }
 
+.forecast-input { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: .85rem; color: var(--muted); }
+.forecast-input input {
+  width: 90px; font-family: var(--font-num); font-size: .9rem;
+  background: var(--panel-2); color: var(--txt); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px; text-align: right;
+}
+.forecast-input input:focus { outline: none; border-color: var(--neon); }
 .forecast-note { font-size: .72rem; margin: 10px 2px 0; line-height: 1.5; }
+
+/* répartition pays — barres drapeau + % */
+.bars { display: flex; flex-direction: column; gap: 13px; padding-top: 4px; }
+.bar-row { display: grid; grid-template-columns: minmax(110px, 38%) 1fr auto; gap: 12px; align-items: center; }
+.bar-label { font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track { height: 12px; background: color-mix(in srgb, var(--muted) 22%, transparent); border-radius: 999px; overflow: hidden; }
+.bar-fill {
+  display: block; height: 100%; width: 0; border-radius: 999px; background: var(--neon);
+  transition: width .7s cubic-bezier(0.22, 1, 0.36, 1); will-change: width;
+}
+.bar-val { font-variant-numeric: tabular-nums; font-size: .85rem; color: var(--muted); min-width: 46px; text-align: right; }
+@media (prefers-reduced-motion: reduce) { .bar-fill { transition: none; } }
+@media (max-width: 768px) { .bar-label { font-size: .82rem; } .bar-row { gap: 8px; } }
 .updated { text-align: right; color: var(--muted); font-size: .8rem; margin-top: 14px; }
 
 /* footer */
