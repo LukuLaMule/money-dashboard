@@ -108,7 +108,7 @@ def main():
         if desig.startswith("INVESTISSEMENT ESPECES"):
             deposits_by_month[mk] += credit
         elif desig.startswith("COUPONS"):
-            dividends.append({"date": d_iso, "account": ACCOUNT,
+            dividends.append({"date": d_iso, "account": ACCOUNT, "isin": isin,
                               "ticker": ticker_from_name(titre), "label": titre or isin,
                               "amount": round(credit, 2)})
         elif desig.startswith("ACHAT COMPTANT") and isin:

@@ -184,14 +184,20 @@ function renderTable() {
     });
 }
 
-/* dividendes à venir : projection des 12 derniers mois sur l'année suivante */
+/* dividendes à venir : projection des 12 derniers mois sur l'année suivante,
+   uniquement pour les lignes ENCORE DÉTENUES (filtre par ISIN/ticker des positions) */
 function renderUpcoming() {
   const tbody = document.querySelector("#upcoming tbody");
   tbody.innerHTML = "";
   const today = new Date();
   const oneYearAgo = new Date(today); oneYearAgo.setFullYear(today.getFullYear() - 1);
+  // identités des positions actuellement détenues (du/des compte(s) filtré(s))
+  const heldIsin = new Set(DATA.positions.filter(accFilter).map((p) => p.isin).filter(Boolean));
+  const heldTk = new Set(DATA.positions.filter(accFilter).map((p) => p.ticker));
+  const stillHeld = (d) => (d.isin ? heldIsin.has(d.isin) : heldTk.has(d.ticker));
   const proj = DATA.dividends.filter(accFilter)
     .filter((d) => new Date(d.date) >= oneYearAgo)
+    .filter(stillHeld)
     .map((d) => {
       const nd = new Date(d.date); nd.setFullYear(nd.getFullYear() + 1);
       return { date: nd, month: nd.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }), ticker: d.ticker, label: d.label, amount: d.amount };

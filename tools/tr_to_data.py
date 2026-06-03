@@ -88,6 +88,7 @@ def build_dividends(txs, account):
         out.append({
             "date": tx["timestamp"][:10],
             "account": account,
+            "isin": get_isin(tx),
             "ticker": ticker_from_title(tx.get("title")),
             "label": tx.get("title") or "?",
             "amount": round(amt, 2),
