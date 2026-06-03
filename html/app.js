@@ -122,7 +122,11 @@ function computeKpis() {
   const totCost = totVal - totGain;
   const perf = totCost > 0 ? (totGain / totCost) * 100 : 0;
   const div = DATA.dividends.filter(accFilter).reduce((a, r) => a + r.amount, 0);
-  return { value, invested, gain, gainPct, perf, div };
+  // rendement : dividendes encaissés sur les 12 derniers mois / valeur actuelle
+  const yearAgo = new Date(); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+  const div12 = DATA.dividends.filter(accFilter).filter((d) => new Date(d.date) >= yearAgo).reduce((a, r) => a + r.amount, 0);
+  const yieldPct = value ? (div12 / value) * 100 : 0;
+  return { value, invested, gain, gainPct, perf, div, div12, yieldPct };
 }
 
 function renderKpis() {
@@ -135,7 +139,7 @@ function renderKpis() {
   const sub = (n, h, c) => { const el = document.querySelector(`[data-sub="${n}"]`); el.innerHTML = h; el.className = `kpi-sub ${c || ""}`; };
   sub("value", `investi ${EUR.format(k.invested)}`, "");
   sub("gain", PCT(k.gainPct), k.gain >= 0 ? "pos" : "neg");
-  sub("div", "encaissés (total)", "");
+  sub("div", `rendement ${k.yieldPct.toFixed(2)} %/an`, "");
   sub("perf", "positions · depuis l'achat", k.perf >= 0 ? "pos" : "neg");
 }
 
@@ -271,6 +275,20 @@ function renderUpcoming() {
     })
     .filter((d) => d.date >= today)
     .sort((a, b) => a.date - b.date);
+  // mini-calendrier : somme estimée par mois sur les 12 prochains mois
+  destroy("cal");
+  const p = palette(); Chart.defaults.color = p.tick;
+  const buckets = {}; const labels12 = [];
+  for (let i = 0; i < 12; i++) { const dt = new Date(today.getFullYear(), today.getMonth() + i, 1); const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`; buckets[key] = 0; labels12.push(dt.toLocaleDateString("fr-FR", { month: "short" })); }
+  proj.forEach((d) => { const key = `${d.date.getFullYear()}-${String(d.date.getMonth() + 1).padStart(2, "0")}`; if (key in buckets) buckets[key] += d.amount; });
+  const calCanvas = document.getElementById("calChart");
+  if (calCanvas) charts.cal = new Chart(calCanvas, {
+    type: "bar",
+    data: { labels: labels12, datasets: [{ data: Object.keys(buckets).map((k) => buckets[k]), backgroundColor: p.neon, borderRadius: 6 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => EUR2.format(c.parsed.y) } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
+  });
+
   if (!proj.length) { tbody.innerHTML = `<tr><td colspan="4" class="muted">Pas assez d'historique pour estimer.</td></tr>`; return; }
   proj.forEach((d) => {
     const tr = document.createElement("tr");
