@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MONEY.LUKU.FR — 420% NOSCOPE PORTFOLIO</title>
+  <meta name="description" content="Dashboard d'investissement boursier PEA / CTO — read only. Get rekt." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Russo+One&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- couches d'ambiance MLG -->
+  <div id="rgb-overlay" aria-hidden="true"></div>
+  <div id="rain-layer" aria-hidden="true"></div>
+  <div id="hitmarker-layer" aria-hidden="true"></div>
+  <div id="illuminati" aria-hidden="true">▲</div>
+
+  <header class="hero">
+    <div class="hero-glasses" aria-hidden="true">🕶️</div>
+    <h1 class="glitch" data-text="MONEY.LUKU.FR">MONEY.LUKU.FR</h1>
+    <p class="hero-sub t-shimmer">PEA × CTO · 420% NOSCOPE PORTFOLIO · READ&nbsp;ONLY</p>
+    <button id="mlg-toggle" class="mlg-btn">🔥 ACTIVER MODE MLG 🔥</button>
+  </header>
+
+  <main class="wrap">
+    <!-- KPI -->
+    <section class="kpis" id="kpis">
+      <article class="kpi card" data-kpi="value">
+        <span class="kpi-label">💰 VALORISATION</span>
+        <span class="kpi-value t-digit-group" data-fmt="eur">—</span>
+        <span class="kpi-sub" data-sub="value"></span>
+      </article>
+      <article class="kpi card" data-kpi="gain">
+        <span class="kpi-label">📈 PLUS-VALUE</span>
+        <span class="kpi-value t-digit-group" data-fmt="eur">—</span>
+        <span class="kpi-sub" data-sub="gain"></span>
+      </article>
+      <article class="kpi card" data-kpi="div">
+        <span class="kpi-label">🤑 DIVIDENDES</span>
+        <span class="kpi-value t-digit-group" data-fmt="eur">—</span>
+        <span class="kpi-sub" data-sub="div"></span>
+      </article>
+      <article class="kpi card" data-kpi="perf">
+        <span class="kpi-label">🎯 PERF YTD</span>
+        <span class="kpi-value t-digit-group" data-fmt="pct">—</span>
+        <span class="kpi-sub" data-sub="perf"></span>
+      </article>
+    </section>
+
+    <!-- filtre compte -->
+    <div class="t-tabs" role="tablist" id="account-tabs">
+      <span class="t-tabs-pill" aria-hidden="true"></span>
+      <button class="t-tab" role="tab" aria-selected="true" data-acc="all">TOUT</button>
+      <button class="t-tab" role="tab" aria-selected="false" data-acc="pea">PEA</button>
+      <button class="t-tab" role="tab" aria-selected="false" data-acc="cto">CTO</button>
+    </div>
+
+    <section class="grid">
+      <div class="card chart-card span-2">
+        <h2 class="card-title">📊 PERFORMANCE <span class="muted">— valeur vs investi</span></h2>
+        <div class="chart-box"><canvas id="perfChart"></canvas></div>
+      </div>
+
+      <div class="card chart-card">
+        <h2 class="card-title">🤑 DIVIDENDES <span class="muted">/ mois</span></h2>
+        <div class="chart-box"><canvas id="divChart"></canvas></div>
+      </div>
+
+      <div class="card chart-card">
+        <h2 class="card-title">🥧 ALLOCATION</h2>
+        <div class="chart-box"><canvas id="allocChart"></canvas></div>
+      </div>
+
+      <div class="card span-2">
+        <h2 class="card-title">🎒 POSITIONS</h2>
+        <div class="table-wrap">
+          <table id="positions">
+            <thead>
+              <tr>
+                <th>Ticker</th><th>Nom</th><th>Compte</th>
+                <th class="num">Qté</th><th class="num">PRU</th><th class="num">Cours</th>
+                <th class="num">Valeur</th><th class="num">+/- value</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <p class="updated">Dernière mise à jour : <span id="lastUpdate">—</span></p>
+  </main>
+
+  <footer class="footer">
+    <p>👁️ <strong>READ ONLY</strong> — toi qui passes ici, tu peux regarder mais pas toucher. <span class="rekt">GET REKT</span> 🎯</p>
+    <p class="tiny">money.luku.fr · données perso · aucun conseil en investissement · fait avec 🔥 transitions.dev</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# pas de secrets ici, mais au cas où
+.env
+*.log
+.DS_Store
