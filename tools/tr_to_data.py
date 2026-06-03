@@ -249,6 +249,11 @@ def main():
     if args.current_value is not None:
         cur_value = round(args.current_value, 2)
     if snapshots and cur_value is not None:
+        # Pas d'historique de valeur CTO (API TR). Pour éviter que la courbe valeur
+        # paraisse SOUS l'investi dans le passé (les apports CTO comptent mais sa valo=0),
+        # on trace le CTO à son coût (break-even) dans le passé, vraie valo au dernier point.
+        for s in snapshots:
+            s["value"] = s["invested"]
         snapshots[-1]["value"] = cur_value
 
     label, broker, color = ACCOUNT_LABELS.get(acc, (acc.upper(), "", "#39ff14"))
