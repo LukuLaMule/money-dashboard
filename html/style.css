@@ -167,21 +167,6 @@ body.mlg #rgb-overlay { opacity: .55; animation: rgbshift 6s linear infinite; }
 body.mlg #illuminati { opacity: 1; animation: spin 9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* quickscope MLG (lunette sniper au clic) */
-#scope { position: fixed; inset: 0; z-index: 9997; pointer-events: none; opacity: 0; display: flex; align-items: center; justify-content: center; }
-#scope .ring { position: relative; width: 46vh; height: 46vh; border-radius: 50%; border: 3px solid rgba(0,0,0,.85); box-shadow: 0 0 0 100vmax rgba(0,0,0,.88), inset 0 0 0 2px rgba(57,255,20,.35); }
-#scope .ch { position: absolute; top: 50%; left: 4%; right: 4%; height: 2px; background: rgba(0,0,0,.7); transform: translateY(-50%); }
-#scope .cv { position: absolute; left: 50%; top: 4%; bottom: 4%; width: 2px; background: rgba(0,0,0,.7); transform: translateX(-50%); }
-#scope .dot { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; background: var(--neon); border-radius: 50%; transform: translate(-50%,-50%); box-shadow: 0 0 8px var(--neon); }
-#scope.is-on { animation: quickscope .46s ease-out; }
-@keyframes quickscope { 0%{opacity:0;transform:scale(1.6)} 22%{opacity:1;transform:scale(1)} 60%{opacity:1} 100%{opacity:0;transform:scale(1)} }
-#flash { position: fixed; inset: 0; z-index: 9998; pointer-events: none; background: #fff; opacity: 0; }
-#flash.is-on { animation: gunflash .2s ease-out; }
-#qs-gif { position: fixed; z-index: 9999; pointer-events: none; top: 50%; left: 50%; max-width: 80vw; max-height: 70vh; transform: translate(-50%,-50%) scale(.6); opacity: 0; }
-#qs-gif.is-on { animation: qsgif 1.2s ease-out; }
-@keyframes qsgif { 0%{opacity:0;transform:translate(-50%,-50%) scale(.6)} 15%{opacity:1;transform:translate(-50%,-50%) scale(1)} 80%{opacity:1} 100%{opacity:0} }
-@keyframes gunflash { 0%{opacity:0} 12%{opacity:.55} 100%{opacity:0} }
-@media (prefers-reduced-motion: reduce) { #scope.is-on, #flash.is-on { animation: none !important; } }
 
 body.mlg.shake { animation: shake .25s linear infinite; }
 @keyframes shake {
@@ -465,6 +450,9 @@ tbody tr:hover { background: rgba(57,255,20,.06); }
 /* footer */
 .footer { position: relative; z-index: 3; text-align: center; padding: 30px 16px 60px; color: var(--muted); }
 .footer strong { color: var(--gold); }
+.socials { display: flex; gap: 14px; justify-content: center; margin-bottom: 14px; }
+.social { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); color: var(--txt); text-decoration: none; font-size: .85rem; transition: border-color .15s ease, color .15s ease, transform .15s ease; }
+.social:hover { border-color: var(--neon); color: var(--neon); transform: translateY(-2px); }
 .rekt { font-family: "Press Start 2P", monospace; color: var(--red); text-shadow: 0 0 8px var(--red); }
 .tiny { font-size: .72rem; margin-top: 8px; }
 
