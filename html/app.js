@@ -1,173 +1,162 @@
 /* ============================================================
    money.luku.fr — dashboard read-only PEA/CTO
-   Données : data.json (aucune écriture côté client)
    ============================================================ */
 
 const EUR = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 const EUR2 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const PCT = (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)} %`;
 
-const COLORS = ["#39ff14", "#00e5ff", "#ff2e97", "#ffd000", "#ff7b00", "#9b5cff", "#ff2b2b"];
+const COLORS = ["#39ff14", "#00e5ff", "#ff2e97", "#ffd000", "#ff7b00", "#9b5cff", "#ff2b2b", "#1ce8b5", "#ff5cf0", "#b0ff3c"];
 let DATA = null;
 let currentAccount = "all";
+let currentRange = 0; // mois ; 0 = max
 let charts = {};
 
-/* ---------- number pop-in (transitions-dev) ---------- */
+/* ---------- pays / zone par ISIN ---------- */
+const ZONE_BY_ISIN = {
+  // ETF : on classe par exposition réelle, pas par domicile
+  FR0013412285: "🇺🇸 États-Unis", FR0010755611: "🇺🇸 États-Unis",
+  LU2655993207: "🌍 Monde", FR0013411980: "🇯🇵 Japon", FR0013412020: "🌏 Émergents",
+};
+const COUNTRY_BY_PREFIX = {
+  FR: "🇫🇷 France", NL: "🇳🇱 Pays-Bas", DE: "🇩🇪 Allemagne", US: "🇺🇸 États-Unis",
+  GB: "🇬🇧 Royaume-Uni", IT: "🇮🇹 Italie", ES: "🇪🇸 Espagne", LU: "🇱🇺 Luxembourg",
+  CH: "🇨🇭 Suisse", JP: "🇯🇵 Japon", KY: "🌏 Îles Caïmans", AU: "🇦🇺 Australie",
+  CA: "🇨🇦 Canada", XF: "₿ Crypto",
+};
+function zoneOf(p) {
+  if (p.isin && ZONE_BY_ISIN[p.isin]) return ZONE_BY_ISIN[p.isin];
+  if (p.isin) return COUNTRY_BY_PREFIX[p.isin.slice(0, 2)] || "🌐 Autre";
+  return "🌐 Autre";
+}
+
+/* ---------- number pop-in ---------- */
 function setDigits(group, str) {
   group.classList.remove("is-animating");
   group.replaceChildren();
-  const chars = str.split("");
-  chars.forEach((ch, i) => {
+  str.split("").forEach((ch, i, arr) => {
     const span = document.createElement("span");
-    span.className = "t-digit";
-    span.textContent = ch;
-    if (i === chars.length - 2) span.dataset.stagger = "1";
-    else if (i === chars.length - 1) span.dataset.stagger = "2";
+    span.className = "t-digit"; span.textContent = ch;
+    if (i === arr.length - 2) span.dataset.stagger = "1";
+    else if (i === arr.length - 1) span.dataset.stagger = "2";
     group.appendChild(span);
   });
-  void group.offsetHeight; // reflow → rejoue l'anim
+  void group.offsetHeight;
   group.classList.add("is-animating");
 }
 
-/* ---------- helpers données ---------- */
+/* ---------- helpers ---------- */
 const accFilter = (row) => currentAccount === "all" || row.account === currentAccount;
+const monthsSorted = () => [...new Set(DATA.snapshots.map((s) => s.date))].sort();
 
-function monthsSorted() {
-  return [...new Set(DATA.snapshots.map((s) => s.date))].sort();
+function rangeCutoff() {
+  const months = monthsSorted();
+  if (!currentRange || !months.length) return null;
+  const idx = Math.max(0, months.length - currentRange);
+  return months[idx];
+}
+function inRange(date) {
+  const c = rangeCutoff();
+  return !c || date >= c;
 }
 
 function seriesFor(field) {
-  // somme par date sur les comptes filtrés
-  const dates = monthsSorted();
-  return dates.map((d) => {
-    const rows = DATA.snapshots.filter((s) => s.date === d && accFilter(s));
-    return rows.reduce((acc, r) => acc + (r[field] || 0), 0);
+  return monthsSorted().filter(inRange).map((d) => {
+    const rows = DATA.snapshots.filter((s) => s.date === d && accFilter(s) && s[field] != null);
+    return rows.length ? rows.reduce((a, r) => a + r[field], 0) : null;
   });
 }
 
 function computeKpis() {
   const dates = monthsSorted();
-  const lastDate = dates[dates.length - 1];
-  const firstOfYear = dates.find((d) => d.startsWith(lastDate.slice(0, 4)));
-
-  const sumAt = (date, field) =>
-    DATA.snapshots.filter((s) => s.date === date && accFilter(s)).reduce((a, r) => a + r[field], 0);
-
-  const value = sumAt(lastDate, "value");
-  const invested = sumAt(lastDate, "invested");
+  const last = dates[dates.length - 1];
+  const sumAt = (date, f) => DATA.snapshots.filter((s) => s.date === date && accFilter(s) && s[f] != null).reduce((a, r) => a + r[f], 0);
+  const value = sumAt(last, "value") || sumAt(last, "invested");
+  const invested = sumAt(last, "invested");
   const gain = value - invested;
   const gainPct = invested ? (gain / invested) * 100 : 0;
-
-  const valYearStart = sumAt(firstOfYear, "value");
-  const ytd = valYearStart ? ((value - valYearStart) / valYearStart) * 100 : 0;
-
+  // perf sur la plage sélectionnée
+  const visible = dates.filter(inRange);
+  const firstV = visible.find((d) => sumAt(d, "value")) || visible[0];
+  const v0 = sumAt(firstV, "value") || sumAt(firstV, "invested");
+  const perf = v0 ? ((value - v0) / v0) * 100 : 0;
   const div = DATA.dividends.filter(accFilter).reduce((a, r) => a + r.amount, 0);
-
-  return { value, invested, gain, gainPct, ytd, div };
+  return { value, invested, gain, gainPct, perf, div };
 }
 
 function renderKpis() {
   const k = computeKpis();
-  const set = (sel, txt) => setDigits(document.querySelector(`[data-kpi="${sel}"] .kpi-value`), txt);
+  const set = (s, t) => setDigits(document.querySelector(`[data-kpi="${s}"] .kpi-value`), t);
   set("value", EUR.format(k.value));
   set("gain", `${k.gain >= 0 ? "+" : ""}${EUR.format(k.gain)}`);
   set("div", EUR.format(k.div));
-  set("perf", PCT(k.ytd));
-
-  const sub = (name, html, cls) => {
-    const el = document.querySelector(`[data-sub="${name}"]`);
-    el.innerHTML = html; el.className = `kpi-sub ${cls || ""}`;
-  };
+  set("perf", PCT(k.perf));
+  const sub = (n, h, c) => { const el = document.querySelector(`[data-sub="${n}"]`); el.innerHTML = h; el.className = `kpi-sub ${c || ""}`; };
   sub("value", `investi ${EUR.format(k.invested)}`, "");
   sub("gain", PCT(k.gainPct), k.gain >= 0 ? "pos" : "neg");
-  sub("div", "encaissés", "");
-  sub("perf", "depuis 1er janv.", k.ytd >= 0 ? "pos" : "neg");
+  sub("div", "encaissés (total)", "");
+  sub("perf", "sur la période", k.perf >= 0 ? "pos" : "neg");
 }
 
 /* ---------- charts ---------- */
 const gridColor = "rgba(255,255,255,.06)";
-const tickColor = "#8a9a82";
 Chart.defaults.font.family = "'Russo One', sans-serif";
-Chart.defaults.color = tickColor;
-
-function destroy(name) { if (charts[name]) { charts[name].destroy(); delete charts[name]; } }
+Chart.defaults.color = "#8a9a82";
+const destroy = (n) => { if (charts[n]) { charts[n].destroy(); delete charts[n]; } };
 
 function renderPerf() {
   destroy("perf");
-  const labels = monthsSorted().map((d) => d.slice(0, 7));
-  const value = seriesFor("value");
-  const invested = seriesFor("invested");
-  const ctx = document.getElementById("perfChart");
-  charts.perf = new Chart(ctx, {
+  const labels = monthsSorted().filter(inRange).map((d) => d.slice(0, 7));
+  charts.perf = new Chart(document.getElementById("perfChart"), {
     type: "line",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Valorisation", data: value, borderColor: "#39ff14", backgroundColor: "rgba(57,255,20,.12)",
-          fill: true, tension: .35, borderWidth: 3, pointRadius: 0, pointHoverRadius: 5,
-        },
-        {
-          label: "Investi", data: invested, borderColor: "#ffd000", borderDash: [6, 5],
-          fill: false, tension: .25, borderWidth: 2, pointRadius: 0,
-        },
-      ],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: { labels: { boxWidth: 14 } },
-        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${EUR.format(c.parsed.y)}` } },
-      },
-      scales: {
-        x: { grid: { color: gridColor } },
-        y: { grid: { color: gridColor }, ticks: { callback: (v) => EUR.format(v) } },
-      },
-    },
+    data: { labels, datasets: [
+      { label: "Valorisation", data: seriesFor("value"), borderColor: "#39ff14", backgroundColor: "rgba(57,255,20,.12)", fill: true, tension: .35, borderWidth: 3, pointRadius: 0, pointHoverRadius: 5, spanGaps: true },
+      { label: "Investi", data: seriesFor("invested"), borderColor: "#ffd000", borderDash: [6, 5], fill: false, tension: .25, borderWidth: 2, pointRadius: 0, spanGaps: true },
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+      plugins: { legend: { labels: { boxWidth: 14 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y == null ? "—" : EUR.format(c.parsed.y)}` } } },
+      scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, ticks: { callback: (v) => EUR.format(v) } } } },
   });
 }
 
 function renderDiv() {
   destroy("div");
   const byMonth = {};
-  DATA.dividends.filter(accFilter).forEach((d) => {
-    const m = d.date.slice(0, 7);
-    byMonth[m] = (byMonth[m] || 0) + d.amount;
+  DATA.dividends.filter(accFilter).filter((d) => inRange(d.date.slice(0, 7) + "-01")).forEach((d) => {
+    const m = d.date.slice(0, 7); byMonth[m] = (byMonth[m] || 0) + d.amount;
   });
   const labels = Object.keys(byMonth).sort();
   charts.div = new Chart(document.getElementById("divChart"), {
     type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Dividendes", data: labels.map((l) => byMonth[l]),
-        backgroundColor: "#00e5ff", borderRadius: 6,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => EUR2.format(c.parsed.y) } } },
-      scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor }, ticks: { callback: (v) => EUR.format(v) } } },
-    },
+    data: { labels, datasets: [{ label: "Dividendes", data: labels.map((l) => byMonth[l]), backgroundColor: "#00e5ff", borderRadius: 6 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => EUR2.format(c.parsed.y) } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor }, ticks: { callback: (v) => EUR.format(v) } } } },
+  });
+}
+
+function doughnut(canvasId, labels, data) {
+  const legendPos = window.innerWidth <= 768 ? "bottom" : "right";
+  return new Chart(document.getElementById(canvasId), {
+    type: "doughnut",
+    data: { labels, datasets: [{ data, backgroundColor: COLORS, borderColor: "#0e1411", borderWidth: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: "58%",
+      plugins: { legend: { position: legendPos, labels: { boxWidth: 12, font: { size: 10 } } },
+        tooltip: { callbacks: { label: (c) => `${c.label}: ${EUR.format(c.parsed)} (${(c.parsed / c.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(0)}%)` } } } },
   });
 }
 
 function renderAlloc() {
   destroy("alloc");
   const pos = DATA.positions.filter(accFilter);
-  const labels = pos.map((p) => p.ticker);
-  const data = pos.map((p) => p.shares * p.last);
-  charts.alloc = new Chart(document.getElementById("allocChart"), {
-    type: "doughnut",
-    data: { labels, datasets: [{ data, backgroundColor: COLORS, borderColor: "#0e1411", borderWidth: 3 }] },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: "58%",
-      plugins: {
-        legend: { position: "right", labels: { boxWidth: 12, font: { size: 10 } } },
-        tooltip: { callbacks: { label: (c) => `${c.label}: ${EUR.format(c.parsed)}` } },
-      },
-    },
-  });
+  charts.alloc = doughnut("allocChart", pos.map((p) => p.ticker), pos.map((p) => p.shares * p.last));
+}
+
+function renderCountry() {
+  destroy("country");
+  const byZone = {};
+  DATA.positions.filter(accFilter).forEach((p) => { const z = zoneOf(p); byZone[z] = (byZone[z] || 0) + p.shares * p.last; });
+  const entries = Object.entries(byZone).sort((a, b) => b[1] - a[1]);
+  charts.country = doughnut("countryChart", entries.map((e) => e[0]), entries.map((e) => e[1]));
 }
 
 function renderTable() {
@@ -178,14 +167,15 @@ function renderTable() {
     .map((p) => ({ ...p, value: p.shares * p.last, gain: p.shares * (p.last - p.pru) }))
     .sort((a, b) => b.value - a.value)
     .forEach((p) => {
-      const pct = ((p.last - p.pru) / p.pru) * 100;
+      const pct = p.pru ? ((p.last - p.pru) / p.pru) * 100 : 0;
       const cls = p.gain >= 0 ? "pos" : "neg";
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><strong>${p.ticker}</strong></td>
         <td>${p.label}</td>
         <td><span class="badge ${p.account}">${accLabel[p.account] || p.account}</span></td>
-        <td class="num">${p.shares}</td>
+        <td>${zoneOf(p)}</td>
+        <td class="num">${(+p.shares).toLocaleString("fr-FR", { maximumFractionDigits: 4 })}</td>
         <td class="num">${EUR2.format(p.pru)}</td>
         <td class="num">${EUR2.format(p.last)}</td>
         <td class="num">${EUR.format(p.value)}</td>
@@ -194,47 +184,71 @@ function renderTable() {
     });
 }
 
-function renderAll() {
-  renderKpis();
-  renderPerf();
-  renderDiv();
-  renderAlloc();
-  renderTable();
+/* dividendes à venir : projection des 12 derniers mois sur l'année suivante */
+function renderUpcoming() {
+  const tbody = document.querySelector("#upcoming tbody");
+  tbody.innerHTML = "";
+  const today = new Date();
+  const oneYearAgo = new Date(today); oneYearAgo.setFullYear(today.getFullYear() - 1);
+  const proj = DATA.dividends.filter(accFilter)
+    .filter((d) => new Date(d.date) >= oneYearAgo)
+    .map((d) => {
+      const nd = new Date(d.date); nd.setFullYear(nd.getFullYear() + 1);
+      return { date: nd, month: nd.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }), ticker: d.ticker, label: d.label, amount: d.amount };
+    })
+    .filter((d) => d.date >= today)
+    .sort((a, b) => a.date - b.date);
+  if (!proj.length) { tbody.innerHTML = `<tr><td colspan="4" class="muted">Pas assez d'historique pour estimer.</td></tr>`; return; }
+  proj.forEach((d) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${d.month}</td><td><strong>${d.ticker}</strong></td><td>${d.label}</td><td class="num">${EUR2.format(d.amount)}</td>`;
+    tbody.appendChild(tr);
+  });
 }
 
-/* ---------- tabs sliding (transitions-dev) ---------- */
-function wireTabs() {
-  const bar = document.querySelector(".t-tabs");
+function renderAll() {
+  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderTable(); renderUpcoming();
+}
+
+/* news éco : chargées depuis news.json (généré côté serveur depuis un flux RSS) */
+async function renderNews() {
+  const box = document.getElementById("news");
+  try {
+    const n = await (await fetch("news.json", { cache: "no-store" })).json();
+    if (n.source) document.getElementById("news-src").textContent = "— " + n.source;
+    const items = (n.items || []).slice(0, 15);
+    if (!items.length) { box.innerHTML = `<p class="muted" style="padding:10px">Aucune actu pour le moment.</p>`; return; }
+    box.innerHTML = items.map((it) => `
+      <a class="news-item" href="${it.link}" target="_blank" rel="noopener noreferrer">
+        <span class="news-src">${it.source || ""}</span>
+        <span class="news-title">${it.title}</span>
+        <span class="news-date">${it.date ? new Date(it.date).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}</span>
+      </a>`).join("");
+  } catch (e) {
+    box.innerHTML = `<p class="muted" style="padding:10px">Flux news indisponible.</p>`;
+  }
+}
+
+/* ---------- tabs (génériques pour les deux barres) ---------- */
+function wireTabBar(sel, onSelect) {
+  const bar = document.querySelector(sel);
   const pill = bar.querySelector(".t-tabs-pill");
   const tabs = [...bar.querySelectorAll(".t-tab")];
   function moveTo(tab, animate) {
-    if (!animate) {
-      const prev = pill.style.transition;
-      pill.style.transition = "none";
-      pill.style.transform = `translateX(${tab.offsetLeft}px)`;
-      pill.style.width = `${tab.offsetWidth}px`;
-      void pill.offsetWidth;
-      pill.style.transition = prev;
-    } else {
-      pill.style.transform = `translateX(${tab.offsetLeft}px)`;
-      pill.style.width = `${tab.offsetWidth}px`;
-    }
+    if (!animate) { const prev = pill.style.transition; pill.style.transition = "none"; pill.style.transform = `translateX(${tab.offsetLeft}px)`; pill.style.width = `${tab.offsetWidth}px`; void pill.offsetWidth; pill.style.transition = prev; }
+    else { pill.style.transform = `translateX(${tab.offsetLeft}px)`; pill.style.width = `${tab.offsetWidth}px`; }
   }
   const active = () => tabs.find((t) => t.getAttribute("aria-selected") === "true") || tabs[0];
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      tabs.forEach((t) => t.setAttribute("aria-selected", t === tab ? "true" : "false"));
-      moveTo(tab, true);
-      currentAccount = tab.dataset.acc;
-      renderAll();
-    });
-  });
+  tabs.forEach((tab) => tab.addEventListener("click", () => {
+    tabs.forEach((t) => t.setAttribute("aria-selected", t === tab ? "true" : "false"));
+    moveTo(tab, true); onSelect(tab); renderAll();
+  }));
   requestAnimationFrame(() => moveTo(active(), false));
   window.addEventListener("resize", () => moveTo(active(), false));
 }
 
 /* ============================================================
-   MLG MODE — hitmarkers, pluie, airhorn, screen shake
+   MLG MODE
    ============================================================ */
 let audioCtx = null;
 function airhorn() {
@@ -242,69 +256,36 @@ function airhorn() {
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     const now = audioCtx.currentTime;
     [0, 0.18, 0.36].forEach((t) => {
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = "sawtooth";
-      o.frequency.setValueAtTime(415, now + t);
-      o.frequency.linearRampToValueAtTime(440, now + t + 0.15);
-      g.gain.setValueAtTime(0.0001, now + t);
-      g.gain.exponentialRampToValueAtTime(0.25, now + t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, now + t + 0.15);
-      o.connect(g).connect(audioCtx.destination);
-      o.start(now + t); o.stop(now + t + 0.16);
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sawtooth"; o.frequency.setValueAtTime(415, now + t); o.frequency.linearRampToValueAtTime(440, now + t + 0.15);
+      g.gain.setValueAtTime(0.0001, now + t); g.gain.exponentialRampToValueAtTime(0.22, now + t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + t + 0.15);
+      o.connect(g).connect(audioCtx.destination); o.start(now + t); o.stop(now + t + 0.16);
     });
-  } catch (e) { /* audio bloqué : pas grave */ }
+  } catch (e) {}
 }
-
 function hitmarker(x, y) {
-  const layer = document.getElementById("hitmarker-layer");
-  const m = document.createElement("div");
-  m.className = "hitmarker";
-  m.textContent = "✛";
-  m.style.left = x + "px";
-  m.style.top = y + "px";
-  layer.appendChild(m);
+  const m = document.createElement("div"); m.className = "hitmarker"; m.textContent = "✛";
+  m.style.left = x + "px"; m.style.top = y + "px";
+  document.getElementById("hitmarker-layer").appendChild(m);
   setTimeout(() => m.remove(), 360);
 }
-
 const RAIN = ["🌭", "🥤", "🔥", "💯", "🎯", "🕶️", "💸", "🤑", "👌", "🌿"];
 let rainTimer = null;
 function startRain() {
   const layer = document.getElementById("rain-layer");
   rainTimer = setInterval(() => {
-    const d = document.createElement("div");
-    d.className = "drop";
-    d.textContent = RAIN[(Math.random() * RAIN.length) | 0];
-    d.style.left = Math.random() * 100 + "vw";
-    d.style.fontSize = 1.4 + Math.random() * 2 + "rem";
-    const dur = 3 + Math.random() * 3;
-    d.style.animationDuration = dur + "s";
-    layer.appendChild(d);
-    setTimeout(() => d.remove(), dur * 1000 + 200);
+    const d = document.createElement("div"); d.className = "drop"; d.textContent = RAIN[(Math.random() * RAIN.length) | 0];
+    d.style.left = Math.random() * 100 + "vw"; d.style.fontSize = 1.4 + Math.random() * 2 + "rem";
+    const dur = 3 + Math.random() * 3; d.style.animationDuration = dur + "s";
+    layer.appendChild(d); setTimeout(() => d.remove(), dur * 1000 + 200);
   }, 220);
 }
-function stopRain() {
-  clearInterval(rainTimer); rainTimer = null;
-  setTimeout(() => { document.getElementById("rain-layer").innerHTML = ""; }, 4000);
-}
-
+function stopRain() { clearInterval(rainTimer); rainTimer = null; setTimeout(() => { document.getElementById("rain-layer").innerHTML = ""; }, 4000); }
 function wireMlg() {
-  // hitmarker au clic partout
-  document.addEventListener("pointerdown", (e) => {
-    hitmarker(e.clientX, e.clientY);
-    if (document.body.classList.contains("mlg")) airhorn();
-  });
-
-  const btn = document.getElementById("mlg-toggle");
-  btn.addEventListener("click", () => {
-    const on = document.body.classList.toggle("mlg");
-    if (on) {
-      airhorn(); startRain();
-      document.body.classList.add("shake");
-      setTimeout(() => document.body.classList.remove("shake"), 900);
-    } else {
-      stopRain();
-    }
+  document.addEventListener("pointerdown", (e) => { hitmarker(e.clientX, e.clientY); if (document.body.classList.contains("mlg")) airhorn(); });
+  document.getElementById("mlg-toggle").addEventListener("click", () => {
+    if (document.body.classList.toggle("mlg")) { airhorn(); startRain(); document.body.classList.add("shake"); setTimeout(() => document.body.classList.remove("shake"), 900); }
+    else stopRain();
   });
 }
 
@@ -312,20 +293,13 @@ function wireMlg() {
    boot
    ============================================================ */
 async function boot() {
-  try {
-    const res = await fetch("data.json", { cache: "no-store" });
-    DATA = await res.json();
-  } catch (e) {
-    document.querySelector(".wrap").innerHTML =
-      `<div class="card"><h2 class="card-title">⚠️ data.json introuvable</h2>
-       <p class="muted">Ajoute ton fichier de données. Voir README.md.</p></div>`;
-    return;
-  }
-  document.getElementById("lastUpdate").textContent =
-    new Date(DATA.lastUpdate).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
-  wireTabs();
+  try { DATA = await (await fetch("data.json", { cache: "no-store" })).json(); }
+  catch (e) { document.querySelector(".wrap").innerHTML = `<div class="card"><h2 class="card-title">⚠️ data.json introuvable</h2></div>`; return; }
+  document.getElementById("lastUpdate").textContent = new Date(DATA.lastUpdate).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });
+  wireTabBar("#range-tabs", (tab) => { currentRange = +tab.dataset.range; });
   wireMlg();
   renderAll();
+  renderNews();
 }
-
 document.addEventListener("DOMContentLoaded", boot);

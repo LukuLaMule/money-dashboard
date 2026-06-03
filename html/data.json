@@ -8,6 +8,12 @@
       "label": "PEA",
       "broker": "Bourse Direct",
       "color": "#39ff14"
+    },
+    {
+      "id": "cto",
+      "label": "CTO",
+      "broker": "Trade Republic",
+      "color": "#00e5ff"
     }
   ],
   "snapshots": [
@@ -195,7 +201,169 @@
       "date": "2026-06-01",
       "account": "pea",
       "invested": 5898.0,
-      "value": 6764.52
+      "value": 6765.98
+    },
+    {
+      "date": "2024-04-01",
+      "account": "cto",
+      "invested": 300.0,
+      "value": null
+    },
+    {
+      "date": "2024-05-01",
+      "account": "cto",
+      "invested": 450.04,
+      "value": null
+    },
+    {
+      "date": "2024-06-01",
+      "account": "cto",
+      "invested": 650.04,
+      "value": null
+    },
+    {
+      "date": "2024-07-01",
+      "account": "cto",
+      "invested": 1140.04,
+      "value": null
+    },
+    {
+      "date": "2024-08-01",
+      "account": "cto",
+      "invested": 1140.04,
+      "value": null
+    },
+    {
+      "date": "2024-09-01",
+      "account": "cto",
+      "invested": 1140.04,
+      "value": null
+    },
+    {
+      "date": "2024-10-01",
+      "account": "cto",
+      "invested": 1340.04,
+      "value": null
+    },
+    {
+      "date": "2024-11-01",
+      "account": "cto",
+      "invested": 1640.04,
+      "value": null
+    },
+    {
+      "date": "2024-12-01",
+      "account": "cto",
+      "invested": 1640.04,
+      "value": null
+    },
+    {
+      "date": "2025-01-01",
+      "account": "cto",
+      "invested": 2090.04,
+      "value": null
+    },
+    {
+      "date": "2025-02-01",
+      "account": "cto",
+      "invested": 2088.18,
+      "value": null
+    },
+    {
+      "date": "2025-03-01",
+      "account": "cto",
+      "invested": 2340.18,
+      "value": null
+    },
+    {
+      "date": "2025-04-01",
+      "account": "cto",
+      "invested": 2340.18,
+      "value": null
+    },
+    {
+      "date": "2025-05-01",
+      "account": "cto",
+      "invested": 2340.18,
+      "value": null
+    },
+    {
+      "date": "2025-06-01",
+      "account": "cto",
+      "invested": 2440.18,
+      "value": null
+    },
+    {
+      "date": "2025-07-01",
+      "account": "cto",
+      "invested": 2690.18,
+      "value": null
+    },
+    {
+      "date": "2025-08-01",
+      "account": "cto",
+      "invested": 2779.87,
+      "value": null
+    },
+    {
+      "date": "2025-09-01",
+      "account": "cto",
+      "invested": 2779.87,
+      "value": null
+    },
+    {
+      "date": "2025-10-01",
+      "account": "cto",
+      "invested": 2819.87,
+      "value": null
+    },
+    {
+      "date": "2025-11-01",
+      "account": "cto",
+      "invested": 2819.87,
+      "value": null
+    },
+    {
+      "date": "2025-12-01",
+      "account": "cto",
+      "invested": 2843.74,
+      "value": null
+    },
+    {
+      "date": "2026-01-01",
+      "account": "cto",
+      "invested": 2843.74,
+      "value": null
+    },
+    {
+      "date": "2026-02-01",
+      "account": "cto",
+      "invested": 628.89,
+      "value": null
+    },
+    {
+      "date": "2026-03-01",
+      "account": "cto",
+      "invested": 628.89,
+      "value": null
+    },
+    {
+      "date": "2026-04-01",
+      "account": "cto",
+      "invested": 969.89,
+      "value": null
+    },
+    {
+      "date": "2026-05-01",
+      "account": "cto",
+      "invested": 969.89,
+      "value": null
+    },
+    {
+      "date": "2026-06-01",
+      "account": "cto",
+      "invested": 1019.89,
+      "value": null
     }
   ],
   "dividends": [
@@ -401,6 +569,258 @@
       "ticker": "THALES",
       "label": "THALES",
       "amount": 8.85
+    },
+    {
+      "date": "2024-06-13",
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "Microsoft",
+      "amount": 0.15
+    },
+    {
+      "date": "2024-08-15",
+      "account": "cto",
+      "ticker": "APPLE",
+      "label": "Apple",
+      "amount": 0.13
+    },
+    {
+      "date": "2024-09-12",
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "Microsoft",
+      "amount": 0.14
+    },
+    {
+      "date": "2024-10-03",
+      "account": "cto",
+      "ticker": "NVIDIA",
+      "label": "NVIDIA",
+      "amount": 0.01
+    },
+    {
+      "date": "2024-11-14",
+      "account": "cto",
+      "ticker": "APPLE",
+      "label": "Apple",
+      "amount": 0.16
+    },
+    {
+      "date": "2024-12-02",
+      "account": "cto",
+      "ticker": "VISA",
+      "label": "Visa",
+      "amount": 0.11
+    },
+    {
+      "date": "2024-12-10",
+      "account": "cto",
+      "ticker": "ELILIL",
+      "label": "Eli Lilly & Co",
+      "amount": 0.21
+    },
+    {
+      "date": "2024-12-12",
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "Microsoft",
+      "amount": 0.17
+    },
+    {
+      "date": "2024-12-27",
+      "account": "cto",
+      "ticker": "NVIDIA",
+      "label": "NVIDIA",
+      "amount": 0.01
+    },
+    {
+      "date": "2025-02-13",
+      "account": "cto",
+      "ticker": "APPLE",
+      "label": "Apple",
+      "amount": 0.18
+    },
+    {
+      "date": "2025-03-03",
+      "account": "cto",
+      "ticker": "VISA",
+      "label": "Visa",
+      "amount": 0.11
+    },
+    {
+      "date": "2025-03-10",
+      "account": "cto",
+      "ticker": "ELILIL",
+      "label": "Eli Lilly & Co",
+      "amount": 0.23
+    },
+    {
+      "date": "2025-03-13",
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "Microsoft",
+      "amount": 0.23
+    },
+    {
+      "date": "2025-04-02",
+      "account": "cto",
+      "ticker": "NVIDIA",
+      "label": "NVIDIA",
+      "amount": 0.03
+    },
+    {
+      "date": "2025-05-15",
+      "account": "cto",
+      "ticker": "APPLE",
+      "label": "Apple",
+      "amount": 0.11
+    },
+    {
+      "date": "2025-05-16",
+      "account": "cto",
+      "ticker": "SAP",
+      "label": "SAP",
+      "amount": 0.67
+    },
+    {
+      "date": "2025-06-02",
+      "account": "cto",
+      "ticker": "VISA",
+      "label": "Visa",
+      "amount": 0.06
+    },
+    {
+      "date": "2025-06-05",
+      "account": "cto",
+      "ticker": "HITACH",
+      "label": "Hitachi",
+      "amount": 1.11
+    },
+    {
+      "date": "2025-06-10",
+      "account": "cto",
+      "ticker": "ELILIL",
+      "label": "Eli Lilly & Co",
+      "amount": 0.15
+    },
+    {
+      "date": "2025-06-12",
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "Microsoft",
+      "amount": 0.16
+    },
+    {
+      "date": "2025-07-03",
+      "account": "cto",
+      "ticker": "NVIDIA",
+      "label": "NVIDIA",
+      "amount": 0.03
+    },
+    {
+      "date": "2025-07-23",
+      "account": "cto",
+      "ticker": "WALTDI",
+      "label": "Walt Disney",
+      "amount": 0.02
+    },
+    {
+      "date": "2025-08-14",
+      "account": "cto",
+      "ticker": "APPLE",
+      "label": "Apple",
+      "amount": 0.16
+    },
+    {
+      "date": "2025-09-02",
+      "account": "cto",
+      "ticker": "VISA",
+      "label": "Visa",
+      "amount": 0.06
+    },
+    {
+      "date": "2025-09-10",
+      "account": "cto",
+      "ticker": "ELILIL",
+      "label": "Eli Lilly & Co",
+      "amount": 0.17
+    },
+    {
+      "date": "2025-09-11",
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "Microsoft",
+      "amount": 0.19
+    },
+    {
+      "date": "2025-10-02",
+      "account": "cto",
+      "ticker": "NVIDIA",
+      "label": "NVIDIA",
+      "amount": 0.02
+    },
+    {
+      "date": "2025-11-13",
+      "account": "cto",
+      "ticker": "APPLE",
+      "label": "Apple",
+      "amount": 0.18
+    },
+    {
+      "date": "2025-11-28",
+      "account": "cto",
+      "ticker": "HITACH",
+      "label": "Hitachi",
+      "amount": 1.05
+    },
+    {
+      "date": "2025-12-01",
+      "account": "cto",
+      "ticker": "VISA",
+      "label": "Visa",
+      "amount": 0.08
+    },
+    {
+      "date": "2025-12-11",
+      "account": "cto",
+      "ticker": "ELILIL",
+      "label": "Eli Lilly & Co",
+      "amount": 0.19
+    },
+    {
+      "date": "2025-12-11",
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "Microsoft",
+      "amount": 0.24
+    },
+    {
+      "date": "2025-12-24",
+      "account": "cto",
+      "ticker": "NVIDIA",
+      "label": "NVIDIA",
+      "amount": 0.02
+    },
+    {
+      "date": "2026-01-15",
+      "account": "cto",
+      "ticker": "WALTDI",
+      "label": "Walt Disney",
+      "amount": 0.03
+    },
+    {
+      "date": "2026-02-12",
+      "account": "cto",
+      "ticker": "APPLE",
+      "label": "Apple",
+      "amount": 0.19
+    },
+    {
+      "date": "2026-03-12",
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "Microsoft",
+      "amount": 0.25
     }
   ],
   "positions": [
@@ -420,7 +840,7 @@
       "isin": "FR0000120073",
       "shares": 6.0,
       "pru": 171.16,
-      "last": 180.04
+      "last": 180.16
     },
     {
       "account": "pea",
@@ -429,7 +849,7 @@
       "isin": "FR0010755611",
       "shares": 28.0,
       "pru": 21.5814,
-      "last": 30.84
+      "last": 30.83
     },
     {
       "account": "pea",
@@ -447,7 +867,7 @@
       "isin": "FR0000121329",
       "shares": 3.0,
       "pru": 237.9233,
-      "last": 225.7
+      "last": 226.2
     },
     {
       "account": "pea",
@@ -456,7 +876,7 @@
       "isin": "NL0000235190",
       "shares": 2.0,
       "pru": 139.875,
-      "last": 169.66
+      "last": 169.92
     },
     {
       "account": "pea",
@@ -465,7 +885,7 @@
       "isin": "FR0000120628",
       "shares": 8.0,
       "pru": 33.3513,
-      "last": 39.25
+      "last": 39.17
     },
     {
       "account": "pea",
@@ -474,7 +894,7 @@
       "isin": "FR0000120578",
       "shares": 3.0,
       "pru": 89.4267,
-      "last": 73.16
+      "last": 73.11
     },
     {
       "account": "pea",
@@ -483,7 +903,7 @@
       "isin": "FR0013411980",
       "shares": 4.0,
       "pru": 26.775,
-      "last": 37.38
+      "last": 37.32
     },
     {
       "account": "pea",
@@ -492,7 +912,7 @@
       "isin": "FR0013412020",
       "shares": 3.0,
       "pru": 30.05,
-      "last": 37.206
+      "last": 37.217
     }
   ]
 }

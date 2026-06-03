@@ -249,9 +249,63 @@ tbody tr:hover { background: rgba(57,255,20,.06); }
 .rekt { font-family: "Press Start 2P", monospace; color: var(--red); text-shadow: 0 0 8px var(--red); }
 .tiny { font-size: .72rem; margin-top: 8px; }
 
-/* responsive */
-@media (max-width: 820px) {
-  .kpis { grid-template-columns: repeat(2,1fr); }
-  .grid { grid-template-columns: 1fr; }
+/* contrôles (filtres) */
+.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 22px 0 6px; }
+#range-tabs .t-tab { padding: 4px 12px; }
+
+/* news éco */
+.news-list { display: flex; flex-direction: column; gap: 2px; max-height: 320px; overflow-y: auto; }
+.news-item { display: block; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,.06); color: var(--txt); text-decoration: none; transition: background .15s ease; }
+.news-item:hover { background: rgba(0,229,255,.07); }
+.news-item .news-src { color: var(--cyan); font-size: .68rem; letter-spacing: 1px; text-transform: uppercase; }
+.news-item .news-title { display: block; font-size: .9rem; margin-top: 3px; }
+.news-item .news-date { color: var(--muted); font-size: .7rem; }
+
+/* ============================================================
+   responsive — mobile / tablette (iOS + Android)
+   ============================================================ */
+/* zones sûres iPhone (encoche) */
+body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+
+/* tablette */
+@media (max-width: 1024px) {
+  .wrap { padding: 8px 14px 40px; }
+  .chart-card .chart-box { height: 260px; }
+  .span-2.chart-card .chart-box { height: 300px; }
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .hero { padding: 28px 12px 16px; }
+  .kpis { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .grid { grid-template-columns: 1fr; gap: 12px; }
   .span-2 { grid-column: span 1; }
+  .card { padding: 13px; border-radius: 12px; }
+  .card-title { font-size: .92rem; }
+  .chart-card .chart-box, .span-2.chart-card .chart-box { height: 240px; }
+  /* doughnuts : légende dessous plutôt qu'à droite (gérée aussi en JS) */
+  .kpi-value { font-size: 1rem; }
+  .updated { text-align: center; }
+  /* barres d'onglets scrollables horizontalement si trop larges */
+  .controls { gap: 8px; }
+  .t-tabs { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .t-tabs::-webkit-scrollbar { display: none; }
+  /* tables : police compacte + scroll horizontal fluide */
+  table { font-size: .82rem; }
+  th, td { padding: 8px 9px; }
+  .table-wrap { -webkit-overflow-scrolling: touch; }
+}
+
+/* petits mobiles */
+@media (max-width: 420px) {
+  .hero h1 { font-size: 1rem; }
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .kpi-label { font-size: .65rem; }
+  .mlg-btn { font-size: .6rem; padding: 10px 12px; }
+}
+
+/* confort tactile : pas de hover collant, cibles plus grandes */
+@media (hover: none) {
+  .t-tab { min-height: 38px; }
+  tbody tr { cursor: default; }
 }
