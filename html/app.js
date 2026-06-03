@@ -38,6 +38,21 @@ function zoneOf(p) {
   return "🌐 Autre";
 }
 
+/* ---------- secteur par ISIN ---------- */
+const SECTOR_BY_ISIN = {
+  // ETF
+  FR0013412285: "🧺 ETF diversifié", FR0010755611: "🧺 ETF diversifié", LU2655993207: "🧺 ETF diversifié",
+  FR0013411980: "🧺 ETF diversifié", FR0013412020: "🧺 ETF diversifié",
+  // PEA actions
+  FR0000120073: "🏭 Industrie", FR0000121329: "🛡️ Défense", NL0000235190: "✈️ Aéronautique",
+  FR0000120578: "💊 Santé", FR0000120628: "🏦 Finance",
+  // CTO actions
+  US0420682058: "💻 Tech / Semi", US0079031078: "💻 Tech / Semi", US5949181045: "💻 Tech",
+  US0937121079: "⚡ Énergie", US36467W1099: "🛒 Conso", US0846701086: "🏦 Finance",
+  US5949724083: "₿ Crypto / Tech",
+};
+const sectorOf = (p) => (p.isin && SECTOR_BY_ISIN[p.isin]) || "🌐 Autre";
+
 /* ---------- valeur / +/- value d'une position (gère 2 formes) ----------
    - PEA : shares + pru + last  → value = shares*last
    - CTO : value + gainPct (+ cost) saisis manuellement (qté/pru/cours inconnus) */
@@ -187,15 +202,15 @@ function renderAlloc() {
   charts.alloc = doughnut("allocChart", pos.map((p) => p.ticker), pos.map(posValue));
 }
 
-function renderCountry() {
-  const box = document.getElementById("countryBars");
+function renderBars(boxId, keyFn) {
+  const box = document.getElementById(boxId);
   if (!box) return;
-  const byZone = {};
-  DATA.positions.filter(accFilter).forEach((p) => { const z = zoneOf(p); byZone[z] = (byZone[z] || 0) + posValue(p); });
-  const entries = Object.entries(byZone).sort((a, b) => b[1] - a[1]);
+  const by = {};
+  DATA.positions.filter(accFilter).forEach((p) => { const k = keyFn(p); by[k] = (by[k] || 0) + posValue(p); });
+  const entries = Object.entries(by).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) { box.innerHTML = `<p class="muted">Aucune position.</p>`; return; }
   const total = entries.reduce((a, e) => a + e[1], 0) || 1;
   const colors = doughnutColors();
-  if (!entries.length) { box.innerHTML = `<p class="muted">Aucune position.</p>`; return; }
   const pcts = entries.map((e) => (e[1] / total) * 100);
   box.innerHTML = entries.map(([z, v], i) => `
     <div class="bar-row" title="${EUR.format(v)}">
@@ -203,11 +218,10 @@ function renderCountry() {
       <span class="bar-track"><span class="bar-fill" style="width:0;background:${colors[i % colors.length]}"></span></span>
       <span class="bar-val">${pcts[i].toFixed(1)} %</span>
     </div>`).join("");
-  // anim : largeur 0 → cible (tween CSS, style card-resize transitions.dev)
-  requestAnimationFrame(() => {
-    box.querySelectorAll(".bar-fill").forEach((el, i) => { el.style.width = pcts[i].toFixed(1) + "%"; });
-  });
+  requestAnimationFrame(() => box.querySelectorAll(".bar-fill").forEach((el, i) => { el.style.width = pcts[i].toFixed(1) + "%"; }));
 }
+const renderCountry = () => renderBars("countryBars", zoneOf);
+const renderSector = () => renderBars("sectorBars", sectorOf);
 
 function renderTable() {
   const tbody = document.querySelector("#positions tbody");
@@ -303,7 +317,7 @@ function renderForecast() {
 }
 
 function renderAll() {
-  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderForecast(); renderTable(); renderUpcoming();
+  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderSector(); renderForecast(); renderTable(); renderUpcoming();
 }
 
 /* news éco : chargées depuis news.json (généré côté serveur depuis un flux RSS) */
@@ -448,3 +462,8 @@ async function boot() {
   renderNews();
 }
 document.addEventListener("DOMContentLoaded", boot);
+
+// PWA : service worker (installable, plein écran sur l'écran d'accueil)
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}
