@@ -450,7 +450,8 @@ tbody tr:hover { background: rgba(57,255,20,.06); }
 /* footer */
 .footer { position: relative; z-index: 3; text-align: center; padding: 30px 16px 60px; color: var(--muted); }
 .footer strong { color: var(--gold); }
-.socials { display: flex; gap: 14px; justify-content: center; margin-bottom: 14px; }
+.socials { display: flex; gap: 14px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+.socials-top { margin: 16px 0 0; }
 .social { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); color: var(--txt); text-decoration: none; font-size: .85rem; transition: border-color .15s ease, color .15s ease, transform .15s ease; }
 .social:hover { border-color: var(--neon); color: var(--neon); transform: translateY(-2px); }
 .rekt { font-family: "Press Start 2P", monospace; color: var(--red); text-shadow: 0 0 8px var(--red); }
