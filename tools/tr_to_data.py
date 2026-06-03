@@ -198,6 +198,8 @@ def main():
     ap.add_argument("--portfolio", default=None, help="JSON compactPortfolio")
     ap.add_argument("--portfolio-csv", default=None, help="CSV `pytr portfolio`")
     ap.add_argument("--prices", default=None)
+    ap.add_argument("--current-value", type=float, default=None,
+                    help="valeur totale actuelle du compte (autorité = app TR) si l'API ne sort pas les positions")
     ap.add_argument("--out", required=True)
     ap.add_argument("--merge", action="store_true",
                     help="conserve les autres comptes déjà présents dans --out")
@@ -217,7 +219,9 @@ def main():
     snapshots = build_invested_curve(txs, acc)
     positions, cur_value = build_positions(portfolio, txs, acc, prices)
 
-    # pose la valo actuelle sur le dernier snapshot du compte
+    # valeur totale : override manuel (app TR) prioritaire, sinon valo reconstruite
+    if args.current_value is not None:
+        cur_value = round(args.current_value, 2)
     if snapshots and cur_value is not None:
         snapshots[-1]["value"] = cur_value
 

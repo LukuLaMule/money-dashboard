@@ -35,8 +35,9 @@ TR_PF_JSON="/home/opc/tr_scraper/out/trade_republic_portfolio.json"
 TR_PF_CSV="/home/opc/tr_scraper/out/trade_republic_portfolio.csv"
 if [ -f "$TR_TX" ]; then
   ARGS="--transactions $TR_TX --out $HTML/data.json --merge --prices $DIR/prices.json"
-  if [ -f "$TR_PF_CSV" ]; then ARGS="$ARGS --portfolio-csv $TR_PF_CSV"
-  elif [ -f "$TR_PF_JSON" ]; then ARGS="$ARGS --portfolio $TR_PF_JSON"; fi
+  if [ -f "$TR_PF_CSV" ] && [ "$(wc -l < "$TR_PF_CSV")" -gt 1 ]; then ARGS="$ARGS --portfolio-csv $TR_PF_CSV"
+  elif [ -f "$TR_PF_JSON" ]; then ARGS="$ARGS --portfolio $TR_PF_JSON"
+  elif [ -f "$DIR/cto_value.txt" ]; then ARGS="$ARGS --current-value $(cat "$DIR/cto_value.txt")"; fi
   $PY tr_to_data.py --account cto $ARGS || echo "cto: échec (non bloquant)"
 fi
 
