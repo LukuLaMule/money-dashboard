@@ -20,6 +20,7 @@ if [ "$MODE" = "news" ]; then exit 0; fi
 
 # --- Cours + historique (Yahoo) à partir des ISIN connus de data.json + des sources ---
 $PY fetch_prices.py --data "$HTML/data.json" --range 5y || echo "prices: échec (non bloquant)"
+$PY fetch_benchmarks.py || echo "benchmarks: échec (non bloquant)"
 
 # --- Reconstruit le PEA depuis l'avis d'opéré stocké ---
 if [ -f "$DIR/sources/pea_avis_opere.csv" ]; then

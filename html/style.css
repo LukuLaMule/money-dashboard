@@ -394,6 +394,10 @@ html[data-theme="pur"] .kpi-value, html[data-theme="performance"] .kpi-value { c
 table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.06); white-space: nowrap; }
 th { color: var(--muted); font-size: .72rem; letter-spacing: 1px; text-transform: uppercase; }
+th.sortable { cursor: pointer; user-select: none; transition: color .12s ease; }
+th.sortable:hover { color: var(--neon); }
+th.sort-asc::after { content: " ▲"; font-size: .7em; color: var(--neon); }
+th.sort-desc::after { content: " ▼"; font-size: .7em; color: var(--neon); }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 tbody tr { transition: background .15s ease; cursor: crosshair; }
 tbody tr:hover { background: rgba(57,255,20,.06); }

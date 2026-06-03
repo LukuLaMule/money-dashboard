@@ -94,6 +94,13 @@
     <section class="grid">
       <div class="card chart-card span-2">
         <h2 class="card-title">📊 PERFORMANCE <span class="muted">— valeur vs investi</span></h2>
+        <div class="t-tabs" role="tablist" id="bench-tabs" style="margin-bottom:10px">
+          <span class="t-tabs-pill" aria-hidden="true"></span>
+          <button class="t-tab" role="tab" aria-selected="true" data-bench="">Sans indice</button>
+          <button class="t-tab" role="tab" aria-selected="false" data-bench="CAC 40">CAC 40</button>
+          <button class="t-tab" role="tab" aria-selected="false" data-bench="S&amp;P 500">S&amp;P 500</button>
+          <button class="t-tab" role="tab" aria-selected="false" data-bench="MSCI World">Monde</button>
+        </div>
         <div class="chart-box"><canvas id="perfChart"></canvas></div>
       </div>
 
@@ -167,9 +174,15 @@
           <table id="positions">
             <thead>
               <tr>
-                <th>Ticker</th><th>Nom</th><th>Compte</th><th>Pays</th>
-                <th class="num">Qté</th><th class="num">PRU</th><th class="num">Cours</th>
-                <th class="num">Valeur</th><th class="num">+/- value</th>
+                <th class="sortable" data-sort="ticker">Ticker</th>
+                <th class="sortable" data-sort="label">Nom</th>
+                <th class="sortable" data-sort="account">Compte</th>
+                <th class="sortable" data-sort="zone">Pays</th>
+                <th class="num sortable" data-sort="shares">Qté</th>
+                <th class="num sortable" data-sort="pru">PRU</th>
+                <th class="num sortable" data-sort="last">Cours</th>
+                <th class="num sortable" data-sort="value">Valeur</th>
+                <th class="num sortable" data-sort="perf">+/- value</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -182,8 +195,7 @@
   </main>
 
   <footer class="footer">
-    <p>👁️ <strong>READ ONLY</strong> — toi qui passes ici, tu peux regarder mais pas toucher. <span class="rekt">GET REKT</span> 🎯</p>
-    <p class="tiny">money.luku.fr · données perso · aucun conseil en investissement · fait avec 🔥 transitions.dev</p>
+    <p class="tiny">money.luku.fr · données personnelles · aucun conseil en investissement</p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>

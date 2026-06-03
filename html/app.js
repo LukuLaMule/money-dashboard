@@ -18,6 +18,9 @@ let DATA = null;
 let currentAccount = "all";
 let currentRange = 0; // mois ; 0 = max
 let forecastYears = 10;
+let currentBench = "";   // indice de comparaison ("" = aucun)
+let BENCH = {};          // historiques d'indices (benchmarks.json)
+let posSort = { key: "value", dir: -1 }; // tri du tableau des positions
 let charts = {};
 
 /* ---------- pays / zone par ISIN ---------- */
@@ -160,12 +163,24 @@ function renderPerf() {
   destroy("perf");
   const p = palette(); Chart.defaults.color = p.tick;
   const labels = monthsSorted().filter(inRange).map((d) => d.slice(0, 7));
+  const valSeries = seriesFor("value");
+  const datasets = [
+    { label: "Valorisation", data: valSeries, borderColor: p.neon, backgroundColor: withAlpha(p.neon, "20"), fill: true, tension: .35, borderWidth: 3, pointRadius: 0, pointHoverRadius: 5, spanGaps: true },
+    { label: "Investi", data: seriesFor("invested"), borderColor: p.gold, borderDash: [6, 5], fill: false, tension: .25, borderWidth: 2, pointRadius: 0, spanGaps: true },
+  ];
+  // overlay indice rebasé sur la 1ère valeur visible du portefeuille
+  if (currentBench && BENCH[currentBench]) {
+    const series = BENCH[currentBench];
+    const bi = labels.findIndex((l, i) => valSeries[i] != null && series[l + "-01"] != null);
+    if (bi >= 0) {
+      const factor = valSeries[bi] / series[labels[bi] + "-01"];
+      const data = labels.map((l) => (series[l + "-01"] != null ? Math.round(series[l + "-01"] * factor) : null));
+      datasets.push({ label: currentBench + " (rebasé)", data, borderColor: p.pink, borderDash: [2, 3], borderWidth: 2, pointRadius: 0, fill: false, spanGaps: true });
+    }
+  }
   charts.perf = new Chart(document.getElementById("perfChart"), {
     type: "line",
-    data: { labels, datasets: [
-      { label: "Valorisation", data: seriesFor("value"), borderColor: p.neon, backgroundColor: withAlpha(p.neon, "20"), fill: true, tension: .35, borderWidth: 3, pointRadius: 0, pointHoverRadius: 5, spanGaps: true },
-      { label: "Investi", data: seriesFor("invested"), borderColor: p.gold, borderDash: [6, 5], fill: false, tension: .25, borderWidth: 2, pointRadius: 0, spanGaps: true },
-    ]},
+    data: { labels, datasets },
     options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
       plugins: { legend: { labels: { boxWidth: 14 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y == null ? "—" : EUR.format(c.parsed.y)}` } } },
       scales: { x: { grid: { color: p.grid } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
@@ -231,9 +246,21 @@ function renderTable() {
   const tbody = document.querySelector("#positions tbody");
   tbody.innerHTML = "";
   const accLabel = Object.fromEntries(DATA.accounts.map((a) => [a.id, a.label]));
+  const NEG = -Infinity;
+  const ext = {
+    ticker: (p) => p.ticker || "", label: (p) => p.label || "", account: (p) => p.account || "", zone: (p) => zoneOf(p),
+    shares: (p) => (p.shares == null ? NEG : p.shares), pru: (p) => (p.pru == null ? NEG : p.pru),
+    last: (p) => (p.last == null ? NEG : p.last), value: (p) => p._val, perf: (p) => p._pct,
+  };
+  const get = ext[posSort.key] || ext.value;
+  // indicateur de tri sur l'en-tête
+  document.querySelectorAll("#positions th.sortable").forEach((th) => {
+    th.classList.toggle("sort-asc", th.dataset.sort === posSort.key && posSort.dir === 1);
+    th.classList.toggle("sort-desc", th.dataset.sort === posSort.key && posSort.dir === -1);
+  });
   DATA.positions.filter(accFilter)
     .map((p) => ({ ...p, _val: posValue(p), _gain: posGain(p), _pct: posGainPct(p) }))
-    .sort((a, b) => b._val - a._val)
+    .sort((a, b) => { const x = get(a), y = get(b); const c = typeof x === "string" ? x.localeCompare(y) : x - y; return c * posSort.dir; })
     .forEach((p) => {
       const cls = p._gain >= 0 ? "pos" : "neg";
       const dash = '<span class="muted">—</span>';
@@ -388,6 +415,18 @@ function wireTabBar(sel, onSelect) {
   window.addEventListener("resize", () => moveTo(active(), false));
 }
 
+/* tri du tableau des positions au clic sur les en-têtes */
+function wirePositionsSort() {
+  document.querySelectorAll("#positions th.sortable").forEach((th) => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.sort;
+      if (posSort.key === key) posSort.dir *= -1;
+      else posSort = { key, dir: ["ticker", "label", "account", "zone"].includes(key) ? 1 : -1 };
+      renderTable();
+    });
+  });
+}
+
 /* ============================================================
    MLG MODE
    ============================================================ */
@@ -482,7 +521,9 @@ async function boot() {
   try { DATA = await (await fetch("data.json", { cache: "no-store" })).json(); }
   catch (e) { document.querySelector(".wrap").innerHTML = `<div class="card"><h2 class="card-title">⚠️ data.json introuvable</h2></div>`; return; }
   document.getElementById("lastUpdate").textContent = new Date(DATA.lastUpdate).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  try { BENCH = await (await fetch("benchmarks.json", { cache: "no-store" })).json(); } catch (e) { BENCH = {}; }
   wireTheme();
+  wireTabBar("#bench-tabs", (tab) => { currentBench = tab.dataset.bench; });
   wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });
   wireTabBar("#range-tabs", (tab) => { currentRange = +tab.dataset.range; });
   wireTabBar("#forecast-tabs", (tab) => { forecastYears = +tab.dataset.years; });
@@ -491,6 +532,7 @@ async function boot() {
     if (el) el.addEventListener("input", () => { if (DATA) renderForecast(); });
     if (el && el.type === "checkbox") el.addEventListener("change", () => { if (DATA) renderForecast(); });
   });
+  wirePositionsSort();
   wireMlg();
   renderAll();
   renderNews();
