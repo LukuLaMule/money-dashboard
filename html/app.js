@@ -99,14 +99,13 @@ function computeKpis() {
   const invested = sumAt(last, "invested");
   const gain = value - invested;
   const gainPct = invested ? (gain / invested) * 100 : 0;
-  // perf MARCHÉ sur la période sélectionnée (hors apports/retraits de la période)
-  const visible = dates.filter(inRange);
-  const firstV = visible.find((d) => sumAt(d, "value")) || visible[0];
-  const v0 = sumAt(firstV, "value") || sumAt(firstV, "invested");
-  const inv0 = sumAt(firstV, "invested");
-  const netDep = invested - inv0;            // apports nets ajoutés pendant la période
-  const base = v0 + Math.max(netDep, 0);     // capital mobilisé sur la période
-  const perf = base ? ((value - v0 - netDep) / base) * 100 : 0;
+  // perf des POSITIONS détenues depuis l'achat = (valeur - coût) / coût
+  // (robuste : marche pour le PEA comme pour le CTO qui n'a pas d'historique de valeur)
+  const fpos = DATA.positions.filter(accFilter);
+  const totVal = fpos.reduce((a, p) => a + posValue(p), 0);
+  const totGain = fpos.reduce((a, p) => a + posGain(p), 0);
+  const totCost = totVal - totGain;
+  const perf = totCost > 0 ? (totGain / totCost) * 100 : 0;
   const div = DATA.dividends.filter(accFilter).reduce((a, r) => a + r.amount, 0);
   return { value, invested, gain, gainPct, perf, div };
 }
@@ -122,7 +121,7 @@ function renderKpis() {
   sub("value", `investi ${EUR.format(k.invested)}`, "");
   sub("gain", PCT(k.gainPct), k.gain >= 0 ? "pos" : "neg");
   sub("div", "encaissés (total)", "");
-  sub("perf", "marché · hors apports", k.perf >= 0 ? "pos" : "neg");
+  sub("perf", "positions · depuis l'achat", k.perf >= 0 ? "pos" : "neg");
 }
 
 /* ---------- charts (couleurs pilotées par le thème CSS) ---------- */
