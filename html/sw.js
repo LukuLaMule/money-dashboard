@@ -1,5 +1,5 @@
 // service worker minimal — cache des assets statiques (données toujours fraîches via réseau)
-const CACHE = "money-v1";
+const CACHE = "money-v2";
 const ASSETS = ["/", "/index.html", "/style.css", "/app.js", "/manifest.json",
   "/assets/icon-192.png", "/assets/icon-512.png", "/assets/icon-180.png"];
 
@@ -16,6 +16,13 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     return;
   }
-  // statique : cache d'abord, réseau en repli
-  e.respondWith(caches.match(e.request).then((r) => r || fetch(e.request)));
+  // icônes : cache d'abord (elles ne changent pas)
+  if (url.pathname.startsWith("/assets/")) {
+    e.respondWith(caches.match(e.request).then((r) => r || fetch(e.request)));
+    return;
+  }
+  // tout le reste (HTML/CSS/JS) : réseau d'abord, cache en repli hors-ligne
+  e.respondWith(fetch(e.request).then((res) => {
+    const copy = res.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); return res;
+  }).catch(() => caches.match(e.request).then((r) => r || caches.match("/index.html"))));
 });
