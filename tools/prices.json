@@ -1,0 +1,13 @@
+{
+  "_comment": "Cours actuels par ISIN. Remplace les valeurs (placeholder=PRU) par le cours du jour. Sert à la valo & aux +/- value.",
+  "FR0013412285": 43.3705,
+  "FR0000120073": 171.16,
+  "FR0000121329": 237.9233,
+  "LU2655993207": 33.8439,
+  "FR0010755611": 21.5814,
+  "NL0000235190": 139.875,
+  "FR0000120578": 89.4267,
+  "FR0000120628": 33.3513,
+  "FR0013411980": 26.775,
+  "FR0013412020": 30.05
+}

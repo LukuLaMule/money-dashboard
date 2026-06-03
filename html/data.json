@@ -1,71 +1,498 @@
 {
   "currency": "EUR",
   "owner": "LUKU",
-  "lastUpdate": "2026-06-01",
-  "_comment": "DEMO DATA — remplace tout par tes vrais historiques. Voir README.md pour le format exact.",
+  "lastUpdate": "2026-06-03",
   "accounts": [
-    { "id": "pea", "label": "PEA", "broker": "Bourse Direct", "color": "#39ff14" },
-    { "id": "cto", "label": "CTO", "broker": "Trade Republic", "color": "#00e5ff" }
+    {
+      "id": "pea",
+      "label": "PEA",
+      "broker": "Bourse Direct",
+      "color": "#39ff14"
+    }
   ],
   "snapshots": [
-    { "date": "2025-01-01", "account": "pea", "value": 10250, "invested": 10000 },
-    { "date": "2025-02-01", "account": "pea", "value": 10980, "invested": 10500 },
-    { "date": "2025-03-01", "account": "pea", "value": 10720, "invested": 11000 },
-    { "date": "2025-04-01", "account": "pea", "value": 11890, "invested": 11500 },
-    { "date": "2025-05-01", "account": "pea", "value": 12640, "invested": 12000 },
-    { "date": "2025-06-01", "account": "pea", "value": 12410, "invested": 12500 },
-    { "date": "2025-07-01", "account": "pea", "value": 13580, "invested": 13000 },
-    { "date": "2025-08-01", "account": "pea", "value": 14220, "invested": 13500 },
-    { "date": "2025-09-01", "account": "pea", "value": 13890, "invested": 14000 },
-    { "date": "2025-10-01", "account": "pea", "value": 15310, "invested": 14500 },
-    { "date": "2025-11-01", "account": "pea", "value": 16040, "invested": 15000 },
-    { "date": "2025-12-01", "account": "pea", "value": 16780, "invested": 15500 },
-    { "date": "2026-01-01", "account": "pea", "value": 16320, "invested": 16000 },
-    { "date": "2026-02-01", "account": "pea", "value": 17650, "invested": 16500 },
-    { "date": "2026-03-01", "account": "pea", "value": 18420, "invested": 17000 },
-    { "date": "2026-04-01", "account": "pea", "value": 19180, "invested": 17500 },
-    { "date": "2026-05-01", "account": "pea", "value": 20240, "invested": 18000 },
-
-    { "date": "2025-01-01", "account": "cto", "value": 5080, "invested": 5000 },
-    { "date": "2025-02-01", "account": "cto", "value": 5420, "invested": 5300 },
-    { "date": "2025-03-01", "account": "cto", "value": 5210, "invested": 5600 },
-    { "date": "2025-04-01", "account": "cto", "value": 6150, "invested": 6000 },
-    { "date": "2025-05-01", "account": "cto", "value": 6880, "invested": 6400 },
-    { "date": "2025-06-01", "account": "cto", "value": 6540, "invested": 6800 },
-    { "date": "2025-07-01", "account": "cto", "value": 7720, "invested": 7200 },
-    { "date": "2025-08-01", "account": "cto", "value": 8410, "invested": 7600 },
-    { "date": "2025-09-01", "account": "cto", "value": 8020, "invested": 8000 },
-    { "date": "2025-10-01", "account": "cto", "value": 9240, "invested": 8400 },
-    { "date": "2025-11-01", "account": "cto", "value": 9980, "invested": 8800 },
-    { "date": "2025-12-01", "account": "cto", "value": 10610, "invested": 9200 },
-    { "date": "2026-01-01", "account": "cto", "value": 10180, "invested": 9600 },
-    { "date": "2026-02-01", "account": "cto", "value": 11320, "invested": 10000 },
-    { "date": "2026-03-01", "account": "cto", "value": 12040, "invested": 10400 },
-    { "date": "2026-04-01", "account": "cto", "value": 12890, "invested": 10800 },
-    { "date": "2026-05-01", "account": "cto", "value": 14150, "invested": 11200 }
+    {
+      "date": "2023-12-01",
+      "account": "pea",
+      "invested": 1180.0,
+      "value": null
+    },
+    {
+      "date": "2024-01-01",
+      "account": "pea",
+      "invested": 1530.0,
+      "value": null
+    },
+    {
+      "date": "2024-02-01",
+      "account": "pea",
+      "invested": 2330.0,
+      "value": null
+    },
+    {
+      "date": "2024-03-01",
+      "account": "pea",
+      "invested": 2330.0,
+      "value": null
+    },
+    {
+      "date": "2024-04-01",
+      "account": "pea",
+      "invested": 2530.0,
+      "value": null
+    },
+    {
+      "date": "2024-05-01",
+      "account": "pea",
+      "invested": 2700.0,
+      "value": null
+    },
+    {
+      "date": "2024-06-01",
+      "account": "pea",
+      "invested": 2950.0,
+      "value": null
+    },
+    {
+      "date": "2024-07-01",
+      "account": "pea",
+      "invested": 2950.0,
+      "value": null
+    },
+    {
+      "date": "2024-08-01",
+      "account": "pea",
+      "invested": 3200.0,
+      "value": null
+    },
+    {
+      "date": "2024-09-01",
+      "account": "pea",
+      "invested": 3500.0,
+      "value": null
+    },
+    {
+      "date": "2024-10-01",
+      "account": "pea",
+      "invested": 3750.0,
+      "value": null
+    },
+    {
+      "date": "2024-11-01",
+      "account": "pea",
+      "invested": 3750.0,
+      "value": null
+    },
+    {
+      "date": "2024-12-01",
+      "account": "pea",
+      "invested": 3950.0,
+      "value": null
+    },
+    {
+      "date": "2025-01-01",
+      "account": "pea",
+      "invested": 3950.0,
+      "value": null
+    },
+    {
+      "date": "2025-02-01",
+      "account": "pea",
+      "invested": 3950.0,
+      "value": null
+    },
+    {
+      "date": "2025-03-01",
+      "account": "pea",
+      "invested": 4253.0,
+      "value": null
+    },
+    {
+      "date": "2025-04-01",
+      "account": "pea",
+      "invested": 4753.0,
+      "value": null
+    },
+    {
+      "date": "2025-05-01",
+      "account": "pea",
+      "invested": 4753.0,
+      "value": null
+    },
+    {
+      "date": "2025-06-01",
+      "account": "pea",
+      "invested": 4753.0,
+      "value": null
+    },
+    {
+      "date": "2025-07-01",
+      "account": "pea",
+      "invested": 5353.0,
+      "value": null
+    },
+    {
+      "date": "2025-08-01",
+      "account": "pea",
+      "invested": 5353.0,
+      "value": null
+    },
+    {
+      "date": "2025-09-01",
+      "account": "pea",
+      "invested": 5528.0,
+      "value": null
+    },
+    {
+      "date": "2025-10-01",
+      "account": "pea",
+      "invested": 5528.0,
+      "value": null
+    },
+    {
+      "date": "2025-11-01",
+      "account": "pea",
+      "invested": 5528.0,
+      "value": null
+    },
+    {
+      "date": "2025-12-01",
+      "account": "pea",
+      "invested": 5528.0,
+      "value": null
+    },
+    {
+      "date": "2026-01-01",
+      "account": "pea",
+      "invested": 5548.0,
+      "value": null
+    },
+    {
+      "date": "2026-02-01",
+      "account": "pea",
+      "invested": 5548.0,
+      "value": null
+    },
+    {
+      "date": "2026-03-01",
+      "account": "pea",
+      "invested": 5548.0,
+      "value": null
+    },
+    {
+      "date": "2026-04-01",
+      "account": "pea",
+      "invested": 5748.0,
+      "value": null
+    },
+    {
+      "date": "2026-05-01",
+      "account": "pea",
+      "invested": 5898.0,
+      "value": null
+    },
+    {
+      "date": "2026-06-01",
+      "account": "pea",
+      "invested": 5898.0,
+      "value": 5787.85
+    }
   ],
   "dividends": [
-    { "date": "2025-03-12", "account": "cto", "ticker": "TTE", "label": "TotalEnergies", "amount": 38.40 },
-    { "date": "2025-05-20", "account": "cto", "ticker": "TTE", "label": "TotalEnergies", "amount": 41.10 },
-    { "date": "2025-05-28", "account": "pea", "ticker": "CW8", "label": "Amundi MSCI World", "amount": 22.80 },
-    { "date": "2025-06-18", "account": "cto", "ticker": "KO", "label": "Coca-Cola", "amount": 18.90 },
-    { "date": "2025-08-14", "account": "cto", "ticker": "TTE", "label": "TotalEnergies", "amount": 43.20 },
-    { "date": "2025-09-25", "account": "cto", "ticker": "KO", "label": "Coca-Cola", "amount": 19.60 },
-    { "date": "2025-11-13", "account": "cto", "ticker": "TTE", "label": "TotalEnergies", "amount": 45.00 },
-    { "date": "2025-12-19", "account": "cto", "ticker": "KO", "label": "Coca-Cola", "amount": 20.10 },
-    { "date": "2026-01-30", "account": "pea", "ticker": "PUST", "label": "Amundi Nasdaq 100", "amount": 14.50 },
-    { "date": "2026-03-11", "account": "cto", "ticker": "TTE", "label": "TotalEnergies", "amount": 47.30 },
-    { "date": "2026-03-26", "account": "cto", "ticker": "KO", "label": "Coca-Cola", "amount": 21.40 },
-    { "date": "2026-05-21", "account": "cto", "ticker": "TTE", "label": "TotalEnergies", "amount": 49.80 },
-    { "date": "2026-05-27", "account": "pea", "ticker": "CW8", "label": "Amundi MSCI World", "amount": 31.20 }
+    {
+      "date": "2024-04-03",
+      "account": "pea",
+      "ticker": "TOTALE",
+      "label": "TOTALENERGIES SE",
+      "amount": 1.48
+    },
+    {
+      "date": "2024-04-18",
+      "account": "pea",
+      "ticker": "AIRBUS",
+      "label": "AIRBUS",
+      "amount": 3.06
+    },
+    {
+      "date": "2024-04-18",
+      "account": "pea",
+      "ticker": "AIRBUS",
+      "label": "AIRBUS",
+      "amount": 1.7
+    },
+    {
+      "date": "2024-04-25",
+      "account": "pea",
+      "ticker": "VINCI",
+      "label": "VINCI",
+      "amount": 3.45
+    },
+    {
+      "date": "2024-04-30",
+      "account": "pea",
+      "ticker": "OREAL",
+      "label": "OREAL",
+      "amount": 6.6
+    },
+    {
+      "date": "2024-05-03",
+      "account": "pea",
+      "ticker": "STELLA",
+      "label": "STELLANTIS",
+      "amount": 5.27
+    },
+    {
+      "date": "2024-05-06",
+      "account": "pea",
+      "ticker": "AXA",
+      "label": "AXA",
+      "amount": 9.9
+    },
+    {
+      "date": "2024-05-06",
+      "account": "pea",
+      "ticker": "ENGIE",
+      "label": "ENGIE",
+      "amount": 4.03
+    },
+    {
+      "date": "2024-05-15",
+      "account": "pea",
+      "ticker": "SANOFI",
+      "label": "SANOFI",
+      "amount": 7.52
+    },
+    {
+      "date": "2024-05-22",
+      "account": "pea",
+      "ticker": "AIRLIQ",
+      "label": "AIR LIQUIDE",
+      "amount": 9.6
+    },
+    {
+      "date": "2024-05-23",
+      "account": "pea",
+      "ticker": "BNPPAR",
+      "label": "BNP PARIBAS ACT.A",
+      "amount": 9.2
+    },
+    {
+      "date": "2024-06-18",
+      "account": "pea",
+      "ticker": "RUBIS",
+      "label": "RUBIS",
+      "amount": 5.94
+    },
+    {
+      "date": "2024-07-01",
+      "account": "pea",
+      "ticker": "TOTALE",
+      "label": "TOTALENERGIES SE",
+      "amount": 1.58
+    },
+    {
+      "date": "2024-10-01",
+      "account": "pea",
+      "ticker": "TOTALE",
+      "label": "TOTALENERGIES SE",
+      "amount": 1.58
+    },
+    {
+      "date": "2024-10-17",
+      "account": "pea",
+      "ticker": "VINCI",
+      "label": "VINCI",
+      "amount": 2.1
+    },
+    {
+      "date": "2024-11-08",
+      "account": "pea",
+      "ticker": "RUBIS",
+      "label": "RUBIS",
+      "amount": 2.25
+    },
+    {
+      "date": "2024-12-13",
+      "account": "pea",
+      "ticker": "AMUNDM",
+      "label": "AMUND.MSCI WORLD D",
+      "amount": 1.05
+    },
+    {
+      "date": "2025-04-24",
+      "account": "pea",
+      "ticker": "AIRBUS",
+      "label": "AIRBUS",
+      "amount": 3.4
+    },
+    {
+      "date": "2025-04-24",
+      "account": "pea",
+      "ticker": "AIRBUS",
+      "label": "AIRBUS",
+      "amount": 1.7
+    },
+    {
+      "date": "2025-05-07",
+      "account": "pea",
+      "ticker": "AXA",
+      "label": "AXA",
+      "amount": 10.75
+    },
+    {
+      "date": "2025-05-14",
+      "account": "pea",
+      "ticker": "SANOFI",
+      "label": "SANOFI",
+      "amount": 7.84
+    },
+    {
+      "date": "2025-05-21",
+      "account": "pea",
+      "ticker": "AIRLIQ",
+      "label": "AIR LIQUIDE",
+      "amount": 19.8
+    },
+    {
+      "date": "2025-12-04",
+      "account": "pea",
+      "ticker": "THALES",
+      "label": "THALES",
+      "amount": 1.9
+    },
+    {
+      "date": "2025-12-11",
+      "account": "pea",
+      "ticker": "AMMSCI",
+      "label": "AM.MSCI WLD.SWAP D",
+      "amount": 5.88
+    },
+    {
+      "date": "2026-04-23",
+      "account": "pea",
+      "ticker": "AIRBUS",
+      "label": "AIRBUS",
+      "amount": 5.44
+    },
+    {
+      "date": "2026-05-07",
+      "account": "pea",
+      "ticker": "SANOFI",
+      "label": "SANOFI",
+      "amount": 12.36
+    },
+    {
+      "date": "2026-05-13",
+      "account": "pea",
+      "ticker": "AXA",
+      "label": "AXA",
+      "amount": 18.56
+    },
+    {
+      "date": "2026-05-20",
+      "account": "pea",
+      "ticker": "AIRLIQ",
+      "label": "AIR LIQUIDE",
+      "amount": 22.2
+    },
+    {
+      "date": "2026-05-20",
+      "account": "pea",
+      "ticker": "THALES",
+      "label": "THALES",
+      "amount": 8.85
+    }
   ],
   "positions": [
-    { "account": "pea", "ticker": "CW8", "label": "Amundi MSCI World", "shares": 22, "pru": 405.10, "last": 512.40 },
-    { "account": "pea", "ticker": "PUST", "label": "Amundi Nasdaq 100", "shares": 180, "pru": 28.90, "last": 41.75 },
-    { "account": "pea", "ticker": "PAEEM", "label": "Amundi Emerging Markets", "shares": 240, "pru": 21.40, "last": 23.10 },
-    { "account": "cto", "ticker": "TTE", "label": "TotalEnergies", "shares": 95, "pru": 54.20, "last": 62.80 },
-    { "account": "cto", "ticker": "KO", "label": "Coca-Cola", "shares": 60, "pru": 58.10, "last": 67.30 },
-    { "account": "cto", "ticker": "NVDA", "label": "NVIDIA", "shares": 12, "pru": 92.50, "last": 168.20 },
-    { "account": "cto", "ticker": "VWCE", "label": "Vanguard FTSE All-World", "shares": 14, "pru": 118.30, "last": 142.90 }
+    {
+      "account": "pea",
+      "ticker": "AMPSP5",
+      "label": "AM.P.SP500 ES.EUR",
+      "isin": "FR0013412285",
+      "shares": 42.0,
+      "pru": 43.3705,
+      "last": 43.3705
+    },
+    {
+      "account": "pea",
+      "ticker": "AIRLIQ",
+      "label": "AIR LIQUIDE",
+      "isin": "FR0000120073",
+      "shares": 6.0,
+      "pru": 171.16,
+      "last": 171.16
+    },
+    {
+      "account": "pea",
+      "ticker": "THALES",
+      "label": "THALES",
+      "isin": "FR0000121329",
+      "shares": 3.0,
+      "pru": 237.9233,
+      "last": 237.9233
+    },
+    {
+      "account": "pea",
+      "ticker": "AMUNDM",
+      "label": "AMUND.MSCI WORLD D",
+      "isin": "LU2655993207",
+      "shares": 18.0,
+      "pru": 33.8439,
+      "last": 33.8439
+    },
+    {
+      "account": "pea",
+      "ticker": "AMUETF",
+      "label": "AMU.ETF LEV.MS.USA",
+      "isin": "FR0010755611",
+      "shares": 28.0,
+      "pru": 21.5814,
+      "last": 21.5814
+    },
+    {
+      "account": "pea",
+      "ticker": "AIRBUS",
+      "label": "AIRBUS",
+      "isin": "NL0000235190",
+      "shares": 2.0,
+      "pru": 139.875,
+      "last": 139.875
+    },
+    {
+      "account": "pea",
+      "ticker": "SANOFI",
+      "label": "SANOFI",
+      "isin": "FR0000120578",
+      "shares": 3.0,
+      "pru": 89.4267,
+      "last": 89.4267
+    },
+    {
+      "account": "pea",
+      "ticker": "AXA",
+      "label": "AXA",
+      "isin": "FR0000120628",
+      "shares": 8.0,
+      "pru": 33.3513,
+      "last": 33.3513
+    },
+    {
+      "account": "pea",
+      "ticker": "AMJAPT",
+      "label": "AM.JAP.TOP.UC.ETF",
+      "isin": "FR0013411980",
+      "shares": 4.0,
+      "pru": 26.775,
+      "last": 26.775
+    },
+    {
+      "account": "pea",
+      "ticker": "AMPEAE",
+      "label": "AM.PEA EM.ES.T.ACC",
+      "isin": "FR0013412020",
+      "shares": 3.0,
+      "pru": 30.05,
+      "last": 30.05
+    }
   ]
 }
