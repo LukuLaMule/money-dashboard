@@ -56,6 +56,12 @@ const SECTOR_BY_ISIN = {
 };
 const sectorOf = (p) => (p.isin && SECTOR_BY_ISIN[p.isin]) || "🌐 Autre";
 
+/* facteur de levier par ISIN (1 = normal) — pour le prévisionnel pondéré */
+const LEVERAGE_BY_ISIN = {
+  FR0010755611: 2, // Amundi MSCI USA Daily (2x) Leveraged
+};
+const levOf = (p) => (p.isin && LEVERAGE_BY_ISIN[p.isin]) || 1;
+
 /* ---------- valeur / +/- value d'une position (gère 2 formes) ----------
    - PEA : shares + pru + last  → value = shares*last
    - CTO : value + gainPct (+ cost) saisis manuellement (qté/pru/cours inconnus) */
@@ -335,15 +341,22 @@ function renderForecast() {
   const rate = Math.max(0, val("forecast-rate", 7));
   const rv = document.getElementById("forecast-rate-val"); if (rv) rv.textContent = rate + " %";
   const infl = !!(document.getElementById("forecast-infl") && document.getElementById("forecast-infl").checked);
+  const divOn = !(document.getElementById("forecast-div") && !document.getElementById("forecast-div").checked); // défaut: oui
   const goal = Math.max(0, val("forecast-goal", 0));
   const H = forecastYears;
   const year0 = new Date().getFullYear();
   const labels = Array.from({ length: H + 1 }, (_, y) => String(year0 + y));
   const defl = (y) => (infl ? Math.pow(1.02, y) : 1); // euros constants (inflation 2 %)
+  // levier moyen pondéré par la valeur des positions (poche ETF ×2 → amplifie le rendement marché)
+  const fp = DATA.positions.filter(accFilter);
+  const totV = fp.reduce((a, q) => a + posValue(q), 0) || 1;
+  const wLev = fp.reduce((a, q) => a + posValue(q) * levOf(q), 0) / totV;
+  const yld = divOn ? (k.yieldPct || 0) : 0; // dividendes réinvestis (%/an)
+  const rEff = (base) => Math.max(0, base) * wLev + yld; // rendement annuel effectif (%)
   const rates = [
-    { name: `Pessimiste · ${Math.max(0, rate - 4)} %/an`, r: Math.max(0, rate - 4) / 100, color: p.red },
-    { name: `Attendu · ${rate} %/an`, r: rate / 100, color: p.cyan },
-    { name: `Optimiste · ${rate + 4} %/an`, r: (rate + 4) / 100, color: p.neon },
+    { name: `Pessimiste · ${rEff(rate - 4).toFixed(1)} %/an`, r: rEff(rate - 4) / 100, color: p.red },
+    { name: `Attendu · ${rEff(rate).toFixed(1)} %/an`, r: rEff(rate) / 100, color: p.cyan },
+    { name: `Optimiste · ${rEff(rate + 4).toFixed(1)} %/an`, r: rEff(rate + 4) / 100, color: p.neon },
   ];
   let neutral = [];
   const datasets = rates.map((s, si) => {
@@ -371,7 +384,11 @@ function renderForecast() {
       : ` 🎯 Objectif ${EUR.format(goal)} non atteint en ${H} ans (scénario attendu).`;
   }
   const note = document.getElementById("forecast-note");
-  if (note) note.textContent = `Base ${EUR.format(v0)} + ${EUR.format(C)}/mois sur ${H} ans${infl ? " · euros constants (infl. 2 %)" : ""}. Projection non contractuelle.${goalTxt}`;
+  if (note) note.textContent = `Base ${EUR.format(v0)} + ${EUR.format(C)}/mois sur ${H} ans · rendement marché ${rate} %/an`
+    + (wLev > 1.001 ? ` × levier moyen ×${wLev.toFixed(2)}` : "")
+    + (yld ? ` + ${yld.toFixed(1)} % div. réinvestis` : "")
+    + (infl ? " · euros constants (infl. 2 %)" : "")
+    + `. Projection non contractuelle.${goalTxt}`;
 }
 
 function renderAll() {
@@ -527,7 +544,7 @@ async function boot() {
   wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });
   wireTabBar("#range-tabs", (tab) => { currentRange = +tab.dataset.range; });
   wireTabBar("#forecast-tabs", (tab) => { forecastYears = +tab.dataset.years; });
-  ["forecast-monthly", "forecast-rate", "forecast-goal", "forecast-infl"].forEach((id) => {
+  ["forecast-monthly", "forecast-rate", "forecast-goal", "forecast-infl", "forecast-div"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("input", () => { if (DATA) renderForecast(); });
     if (el && el.type === "checkbox") el.addEventListener("change", () => { if (DATA) renderForecast(); });
