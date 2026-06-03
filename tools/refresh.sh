@@ -31,10 +31,12 @@ fi
 
 # --- Reconstruit le CTO si l'export Trade Republic est présent ---
 TR_TX="/home/opc/tr_scraper/out/trade_republic_transactions.json"
-TR_PF="/home/opc/tr_scraper/out/trade_republic_portfolio.json"
+TR_PF_JSON="/home/opc/tr_scraper/out/trade_republic_portfolio.json"
+TR_PF_CSV="/home/opc/tr_scraper/out/trade_republic_portfolio.csv"
 if [ -f "$TR_TX" ]; then
   ARGS="--transactions $TR_TX --out $HTML/data.json --merge --prices $DIR/prices.json"
-  [ -f "$TR_PF" ] && ARGS="$ARGS --portfolio $TR_PF"
+  if [ -f "$TR_PF_CSV" ]; then ARGS="$ARGS --portfolio-csv $TR_PF_CSV"
+  elif [ -f "$TR_PF_JSON" ]; then ARGS="$ARGS --portfolio $TR_PF_JSON"; fi
   $PY tr_to_data.py --account cto $ARGS || echo "cto: échec (non bloquant)"
 fi
 

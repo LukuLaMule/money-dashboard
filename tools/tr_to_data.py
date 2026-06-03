@@ -24,6 +24,7 @@ Usage :
       --merge        # conserve les autres comptes déjà présents dans data.json
 """
 import argparse
+import csv
 import json
 import re
 import sys
@@ -121,8 +122,39 @@ def build_invested_curve(txs, account):
     return snaps
 
 
+def read_pytr_csv(path):
+    """Lit le CSV `pytr portfolio` → structure {positions:[...]} (case-insensitive)."""
+    rows = list(csv.DictReader(open(path, encoding="utf-8-sig"), delimiter=";")) or []
+    if rows and len(rows[0]) <= 1:  # mauvais séparateur → réessaie en virgule
+        rows = list(csv.DictReader(open(path, encoding="utf-8-sig")))
+    def col(d, *keys):
+        for k in d:
+            kl = k.lower().replace(" ", "")
+            if any(kk in kl for kk in keys):
+                return d[k]
+        return None
+    def fnum(s):
+        if not s:
+            return 0.0
+        s = str(s).replace("\xa0", "").replace(" ", "").replace(",", ".").replace("€", "")
+        try:
+            return float(s)
+        except ValueError:
+            return 0.0
+    positions = []
+    for r in rows:
+        positions.append({
+            "isin": (col(r, "isin") or "").strip(),
+            "netSize": fnum(col(r, "quantity", "qty", "netsize", "shares")),
+            "averageBuyIn": fnum(col(r, "avgcost", "averagebuy", "buyin", "pru")),
+            "_last": fnum(col(r, "price", "cours")) or None,
+            "_name": (col(r, "name", "nom") or "").strip() or None,
+        })
+    return {"positions": positions}
+
+
 def build_positions(portfolio, txs, account, prices):
-    """Positions exactes depuis compactPortfolio + noms depuis la timeline + cours depuis prices."""
+    """Positions exactes depuis compactPortfolio/pytr + noms timeline + cours."""
     if not portfolio:
         return [], None
     names = {}
@@ -140,10 +172,10 @@ def build_positions(portfolio, txs, account, prices):
         pru = float(p.get("averageBuyIn") or p.get("buyIn") or p.get("averagePrice") or 0)
         if not isin or shares == 0:
             continue
-        label = names.get(isin, isin)
+        label = names.get(isin) or p.get("_name") or isin
         tk = ticker_from_title(label)
-        last = None
-        if prices:
+        last = p.get("_last")  # cours fourni directement par pytr
+        if last is None and prices:
             last = prices.get(isin) or prices.get(tk) or prices.get(label)
         if last is None:
             last = pru  # repli : valo = coût tant qu'aucun cours fourni
@@ -151,7 +183,7 @@ def build_positions(portfolio, txs, account, prices):
             have_any_price = True
             last = float(last)
         positions.append({
-            "account": account, "ticker": tk, "label": label,
+            "account": account, "ticker": tk, "label": label, "isin": isin,
             "shares": round(shares, 6), "pru": round(pru, 4), "last": round(last, 4),
         })
         total_value += shares * last
@@ -163,7 +195,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--account", default="cto")
     ap.add_argument("--transactions", required=True)
-    ap.add_argument("--portfolio", default=None)
+    ap.add_argument("--portfolio", default=None, help="JSON compactPortfolio")
+    ap.add_argument("--portfolio-csv", default=None, help="CSV `pytr portfolio`")
     ap.add_argument("--prices", default=None)
     ap.add_argument("--out", required=True)
     ap.add_argument("--merge", action="store_true",
@@ -171,7 +204,12 @@ def main():
     args = ap.parse_args()
 
     txs = json.load(open(args.transactions, encoding="utf-8"))
-    portfolio = json.load(open(args.portfolio, encoding="utf-8")) if args.portfolio else None
+    if args.portfolio_csv:
+        portfolio = read_pytr_csv(args.portfolio_csv)
+    elif args.portfolio:
+        portfolio = json.load(open(args.portfolio, encoding="utf-8"))
+    else:
+        portfolio = None
     prices = json.load(open(args.prices, encoding="utf-8")) if args.prices else None
 
     acc = args.account
