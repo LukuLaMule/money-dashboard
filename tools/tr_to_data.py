@@ -174,8 +174,23 @@ def build_positions_from_file(path, account):
     return positions, round(total + cash, 2)
 
 
+def read_portfolio_v2(path):
+    """Lit la réponse compactPortfolioByTypeV2 (categories[].positions[]) → format positions."""
+    d = json.load(open(path, encoding="utf-8"))
+    pos = []
+    for cat in d.get("categories", []):
+        for p in cat.get("positions", []):
+            abi = p.get("averageBuyIn")
+            pru = abi.get("value") if isinstance(abi, dict) else abi
+            sz = p.get("netSize")
+            if not p.get("isin") or not sz:
+                continue
+            pos.append({"isin": p["isin"], "netSize": sz, "averageBuyIn": pru, "_name": p.get("name")})
+    return {"positions": pos}
+
+
 def build_positions(portfolio, txs, account, prices):
-    """Positions exactes depuis compactPortfolio/pytr + noms timeline + cours."""
+    """Positions exactes depuis compactPortfolio/pytr/V2 + noms timeline + cours."""
     if not portfolio:
         return [], None
     names = {}
@@ -217,10 +232,12 @@ def main():
     ap.add_argument("--account", default="cto")
     ap.add_argument("--transactions", required=True)
     ap.add_argument("--portfolio", default=None, help="JSON compactPortfolio")
+    ap.add_argument("--portfolio-v2", default=None, help="JSON compactPortfolioByTypeV2")
     ap.add_argument("--portfolio-csv", default=None, help="CSV `pytr portfolio`")
     ap.add_argument("--prices", default=None)
     ap.add_argument("--positions-file", default=None,
                     help="JSON de positions saisies manuellement (value + gainPct), ex. cto_positions.json")
+    ap.add_argument("--cash", type=float, default=None, help="liquidités à ajouter à la valo")
     ap.add_argument("--current-value", type=float, default=None,
                     help="valeur totale actuelle du compte (autorité = app TR) si l'API ne sort pas les positions")
     ap.add_argument("--out", required=True)
@@ -229,7 +246,9 @@ def main():
     args = ap.parse_args()
 
     txs = json.load(open(args.transactions, encoding="utf-8"))
-    if args.portfolio_csv:
+    if args.portfolio_v2:
+        portfolio = read_portfolio_v2(args.portfolio_v2)
+    elif args.portfolio_csv:
         portfolio = read_pytr_csv(args.portfolio_csv)
     elif args.portfolio:
         portfolio = json.load(open(args.portfolio, encoding="utf-8"))
@@ -246,6 +265,8 @@ def main():
         positions, cur_value = build_positions(portfolio, txs, acc, prices)
 
     # valeur totale : override manuel (app TR) prioritaire, sinon valo reconstruite
+    if args.cash and cur_value is not None:
+        cur_value = round(cur_value + args.cash, 2)
     if args.current_value is not None:
         cur_value = round(args.current_value, 2)
     if snapshots and cur_value is not None:

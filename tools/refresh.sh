@@ -30,16 +30,17 @@ if [ -f "$DIR/sources/pea_avis_opere.csv" ]; then
     --out "$HTML/data.json" --merge
 fi
 
-# --- Reconstruit le CTO si l'export Trade Republic est présent ---
-TR_TX="/home/opc/tr_scraper/out/trade_republic_transactions.json"
-TR_PF_JSON="/home/opc/tr_scraper/out/trade_republic_portfolio.json"
-TR_PF_CSV="/home/opc/tr_scraper/out/trade_republic_portfolio.csv"
+# --- CTO Trade Republic ---
+TR_DIR="/home/opc/tr_scraper"
+TR_TX="$TR_DIR/out/trade_republic_transactions.json"
+TR_V2="$TR_DIR/out/cto_portfolio_v2.json"
+# tente de rafraîchir le portefeuille V2 (reprise de session, sans 2FA ; échoue vite si expirée)
+( cd "$TR_DIR" && timeout 45 .venv/bin/python fetch_tr_portfolio.py < /dev/null ) || echo "cto V2: session TR expirée → garde le dernier portefeuille (relance cto_relogin.sh)"
+CASH=$($PY -c "import json;print(json.load(open('$TR_DIR/out/trade_republic_profile_cash.json'))[0]['amount'])" 2>/dev/null || echo 0)
 if [ -f "$TR_TX" ]; then
-  ARGS="--transactions $TR_TX --out $HTML/data.json --merge --prices $DIR/prices.json"
-  if [ -f "$DIR/cto_positions.json" ]; then ARGS="$ARGS --positions-file $DIR/cto_positions.json"
-  elif [ -f "$TR_PF_CSV" ] && [ "$(wc -l < "$TR_PF_CSV")" -gt 1 ]; then ARGS="$ARGS --portfolio-csv $TR_PF_CSV"
-  elif [ -f "$TR_PF_JSON" ]; then ARGS="$ARGS --portfolio $TR_PF_JSON"
-  elif [ -f "$DIR/cto_value.txt" ]; then ARGS="$ARGS --current-value $(cat "$DIR/cto_value.txt")"; fi
+  ARGS="--transactions $TR_TX --out $HTML/data.json --merge --prices $DIR/prices.json --cash $CASH"
+  if [ -f "$TR_V2" ]; then ARGS="$ARGS --portfolio-v2 $TR_V2"
+  elif [ -f "$DIR/cto_positions.json" ]; then ARGS="$ARGS --positions-file $DIR/cto_positions.json"; fi
   $PY tr_to_data.py --account cto $ARGS || echo "cto: échec (non bloquant)"
 fi
 
