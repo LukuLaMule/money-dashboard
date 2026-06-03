@@ -26,10 +26,24 @@ Usage :
 import argparse
 import csv
 import json
+import os
 import re
 import sys
 from collections import defaultdict
 from datetime import date
+
+
+def attach_prev_close(positions, prices_path):
+    """Ajoute prevClose (clôture veille) à chaque position depuis prices_prev.json."""
+    if not prices_path:
+        return
+    pp = os.path.join(os.path.dirname(prices_path) or ".", "prices_prev.json")
+    if not os.path.exists(pp):
+        return
+    prev = json.load(open(pp, encoding="utf-8"))
+    for p in positions:
+        if p.get("isin") in prev:
+            p["prevClose"] = prev[p["isin"]]
 
 ISIN_RE = re.compile(r"logos/([A-Za-z0-9]{12})/")
 
@@ -263,6 +277,7 @@ def main():
         positions, cur_value = build_positions_from_file(args.positions_file, acc)
     else:
         positions, cur_value = build_positions(portfolio, txs, acc, prices)
+    attach_prev_close(positions, args.prices)
 
     # valeur totale : override manuel (app TR) prioritaire, sinon valo reconstruite
     if args.cash and cur_value is not None:

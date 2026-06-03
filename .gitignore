@@ -12,3 +12,4 @@ tools/cto_positions.json
 tools/cto_value.txt
 tools/symbols.json
 tools/sources/
+tools/prices_prev.json

@@ -114,6 +114,18 @@ def to_eur(value, currency, month, rng):
     return eur
 
 
+def prev_close_eur(symbol, currency, rng):
+    """Clôture de la VEILLE (graphe journalier 5j) convertie en EUR."""
+    try:
+        c = get_json(f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=5d&interval=1d")
+        res = c["chart"]["result"][0]
+        closes = [x for x in (res["indicators"]["quote"][0].get("close") or []) if x is not None]
+        prev = closes[-2] if len(closes) >= 2 else None
+    except Exception:
+        prev = None
+    return to_eur(prev, currency, None, rng) if prev else None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default=None, help="data.json pour extraire les ISIN des positions")
@@ -140,7 +152,7 @@ def main():
     cache_path = os.path.join(HERE, "symbols.json")
     cache = json.load(open(cache_path, encoding="utf-8")) if os.path.exists(cache_path) else {}
 
-    prices, history = {}, {}
+    prices, history, prevs = {}, {}, {}
     for isin in isins:
         sym = resolve_symbol(isin, cache)
         if not sym:
@@ -155,6 +167,9 @@ def main():
         cur_eur = to_eur(cur_price, currency, None, args.range)
         prices[isin] = round(cur_eur, 4) if cur_eur else None
         history[isin] = hist_eur
+        prev_eur = prev_close_eur(sym, currency, args.range)
+        if prev_eur:
+            prevs[isin] = round(prev_eur, 4)
         fxnote = "" if currency == "EUR" else f" [{currency}→EUR]"
         print(f"{isin}: {sym} = {prices[isin]} € ({len(hist_eur)} mois){fxnote}")
         time.sleep(0.4)
@@ -174,11 +189,15 @@ def main():
 
     prices = merge_into(args.out_prices, prices)
     history = merge_into(args.out_history, history)
+    prev_path = os.path.join(HERE, "prices_prev.json")
+    prevs = merge_into(prev_path, prevs)
     prices["_comment"] = "Cours actuels EUR par ISIN — généré par fetch_prices.py (Yahoo). Relancer pour rafraîchir."
     json.dump(prices, open(args.out_prices, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     json.dump(history, open(args.out_history, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    json.dump(prevs, open(prev_path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     print(f"\n✅ {args.out_prices} ({len([k for k in prices if k!='_comment'])} cours)")
     print(f"✅ {args.out_history} (historique mensuel EUR)")
+    print(f"✅ {prev_path} (clôture veille)")
 
 
 if __name__ == "__main__":

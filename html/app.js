@@ -130,12 +130,21 @@ function computeKpis() {
   const totGain = fpos.reduce((a, p) => a + posGain(p), 0);
   const totCost = totVal - totGain;
   const perf = totCost > 0 ? (totGain / totCost) * 100 : 0;
+  // gain/perte du jour (cours actuel vs clôture de la veille)
+  let dayPnL = 0, dayBase = 0;
+  fpos.forEach((p) => {
+    if (p.prevClose != null && p.last != null && p.shares != null) {
+      dayPnL += p.shares * (p.last - p.prevClose);
+      dayBase += p.shares * p.prevClose;
+    }
+  });
+  const dayPct = dayBase ? (dayPnL / dayBase) * 100 : 0;
   const div = DATA.dividends.filter(accFilter).reduce((a, r) => a + r.amount, 0);
   // rendement : dividendes encaissés sur les 12 derniers mois / valeur actuelle
   const yearAgo = new Date(); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
   const div12 = DATA.dividends.filter(accFilter).filter((d) => new Date(d.date) >= yearAgo).reduce((a, r) => a + r.amount, 0);
   const yieldPct = value ? (div12 / value) * 100 : 0;
-  return { value, invested, gain, gainPct, perf, div, div12, yieldPct };
+  return { value, invested, gain, gainPct, perf, div, div12, yieldPct, dayPnL, dayBase, dayPct };
 }
 
 function renderKpis() {
@@ -146,7 +155,12 @@ function renderKpis() {
   set("div", EUR.format(k.div));
   set("perf", PCT(k.perf));
   const sub = (n, h, c) => { const el = document.querySelector(`[data-sub="${n}"]`); el.innerHTML = h; el.className = `kpi-sub ${c || ""}`; };
-  sub("value", `investi ${EUR.format(k.invested)}`, "");
+  let dayTxt = "";
+  if (k.dayBase > 0) {
+    const c = k.dayPnL >= 0 ? "pos" : "neg";
+    dayTxt = ` · <span class="${c}">auj. ${k.dayPnL >= 0 ? "+" : ""}${EUR2.format(k.dayPnL)} (${PCT(k.dayPct)})</span>`;
+  }
+  sub("value", `investi ${EUR.format(k.invested)}${dayTxt}`, "");
   sub("gain", PCT(k.gainPct), k.gain >= 0 ? "pos" : "neg");
   sub("div", `rendement ${k.yieldPct.toFixed(2)} %/an`, "");
   sub("perf", "positions · depuis l'achat", k.perf >= 0 ? "pos" : "neg");

@@ -23,6 +23,7 @@ Usage :
 import argparse
 import csv
 import json
+import os
 import re
 from collections import defaultdict
 from datetime import date
@@ -148,6 +149,14 @@ def main():
         for p in positions)
     positions.sort(key=lambda x: -x["shares"] * x["last"])
     cur_value = round(sum(p["shares"] * p["last"] for p in positions), 2) if have_prices else None
+    # clôture veille (gain/perte du jour)
+    if args.prices:
+        pp = os.path.join(os.path.dirname(args.prices) or ".", "prices_prev.json")
+        if os.path.exists(pp):
+            prev = json.load(open(pp, encoding="utf-8"))
+            for p in positions:
+                if p.get("isin") in prev:
+                    p["prevClose"] = prev[p["isin"]]
 
     # --- courbe (apports + valeur) ---
     snapshots = []
