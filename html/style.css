@@ -375,7 +375,7 @@ html:not([data-theme="mlg"]) #illuminati { display: none; }
 .wrap { position: relative; z-index: 3; max-width: 1180px; margin: 0 auto; padding: 8px 16px 40px; }
 #account-tabs { display: inline-flex; margin: 22px 0 8px; }
 
-.kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 8px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 8px; }
 .grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
 .span-2 { grid-column: span 2; }
 

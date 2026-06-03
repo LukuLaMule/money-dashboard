@@ -155,12 +155,17 @@ function renderKpis() {
   set("div", EUR.format(k.div));
   set("perf", PCT(k.perf));
   const sub = (n, h, c) => { const el = document.querySelector(`[data-sub="${n}"]`); el.innerHTML = h; el.className = `kpi-sub ${c || ""}`; };
-  let dayTxt = "";
+  sub("value", `investi ${EUR.format(k.invested)}`, "");
+  // KPI Aujourd'hui (variation du jour vs clôture veille)
+  const dayEl = document.querySelector('[data-kpi="day"] .kpi-value');
   if (k.dayBase > 0) {
-    const c = k.dayPnL >= 0 ? "pos" : "neg";
-    dayTxt = ` · <span class="${c}">auj. ${k.dayPnL >= 0 ? "+" : ""}${EUR2.format(k.dayPnL)} (${PCT(k.dayPct)})</span>`;
+    set("day", `${k.dayPnL >= 0 ? "+" : ""}${EUR.format(k.dayPnL)}`);
+    sub("day", PCT(k.dayPct), k.dayPnL >= 0 ? "pos" : "neg");
+    if (dayEl) { dayEl.classList.toggle("pos", k.dayPnL >= 0); dayEl.classList.toggle("neg", k.dayPnL < 0); }
+  } else {
+    set("day", "—"); sub("day", "vs hier", "");
+    if (dayEl) dayEl.classList.remove("pos", "neg");
   }
-  sub("value", `investi ${EUR.format(k.invested)}${dayTxt}`, "");
   sub("gain", PCT(k.gainPct), k.gain >= 0 ? "pos" : "neg");
   sub("div", `rendement ${k.yieldPct.toFixed(2)} %/an`, "");
   sub("perf", "positions · depuis l'achat", k.perf >= 0 ? "pos" : "neg");
