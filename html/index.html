@@ -106,6 +106,19 @@
         <div class="chart-box"><canvas id="countryChart"></canvas></div>
       </div>
 
+      <div class="card chart-card span-2">
+        <h2 class="card-title">🔮 PRÉVISIONNEL <span class="muted">— scénarios, apports poursuivis</span></h2>
+        <div class="t-tabs" role="tablist" id="forecast-tabs" style="margin-bottom:12px">
+          <span class="t-tabs-pill" aria-hidden="true"></span>
+          <button class="t-tab" role="tab" aria-selected="false" data-years="5">5 ANS</button>
+          <button class="t-tab" role="tab" aria-selected="true" data-years="10">10 ANS</button>
+          <button class="t-tab" role="tab" aria-selected="false" data-years="20">20 ANS</button>
+          <button class="t-tab" role="tab" aria-selected="false" data-years="30">30 ANS</button>
+        </div>
+        <div class="chart-box"><canvas id="forecastChart"></canvas></div>
+        <p class="forecast-note muted" id="forecast-note"></p>
+      </div>
+
       <div class="card">
         <h2 class="card-title">📅 DIVIDENDES À VENIR <span class="muted">(12 mois, est.)</span></h2>
         <div class="table-wrap">

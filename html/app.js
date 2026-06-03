@@ -6,10 +6,18 @@ const EUR = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR",
 const EUR2 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const PCT = (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)} %`;
 
-const COLORS = ["#39ff14", "#00e5ff", "#ff2e97", "#ffd000", "#ff7b00", "#9b5cff", "#ff2b2b", "#1ce8b5", "#ff5cf0", "#b0ff3c"];
+// palettes de camembert par thème (allocation / répartition pays)
+const SERIES = {
+  mlg: ["#39ff14", "#00e5ff", "#ff2e97", "#ffd000", "#ff7b00", "#9b5cff", "#ff2b2b", "#1ce8b5", "#ff5cf0", "#b0ff3c"],
+  performance: ["#2fe6a0", "#3b9bff", "#7c5cff", "#ffcf4d", "#ff5d8f", "#1ce8b5", "#ff8a3c", "#5bd1ff", "#b388ff", "#9cff57"],
+  wealth: ["#e7c977", "#c9a24e", "#b8862f", "#d8c48f", "#caa05a", "#9e7b4a", "#f0dca8", "#7a5c34", "#e0b769", "#8c6b3f"],
+  pur: ["#2563eb", "#16a34a", "#db2777", "#f59e0b", "#0891b2", "#7c3aed", "#dc2626", "#0d9488", "#ca8a04", "#4f46e5"],
+};
+const doughnutColors = () => SERIES[document.documentElement.dataset.theme] || SERIES.mlg;
 let DATA = null;
 let currentAccount = "all";
 let currentRange = 0; // mois ; 0 = max
+let forecastYears = 10;
 let charts = {};
 
 /* ---------- pays / zone par ISIN ---------- */
@@ -91,11 +99,14 @@ function computeKpis() {
   const invested = sumAt(last, "invested");
   const gain = value - invested;
   const gainPct = invested ? (gain / invested) * 100 : 0;
-  // perf sur la plage sélectionnée
+  // perf MARCHÉ sur la période sélectionnée (hors apports/retraits de la période)
   const visible = dates.filter(inRange);
   const firstV = visible.find((d) => sumAt(d, "value")) || visible[0];
   const v0 = sumAt(firstV, "value") || sumAt(firstV, "invested");
-  const perf = v0 ? ((value - v0) / v0) * 100 : 0;
+  const inv0 = sumAt(firstV, "invested");
+  const netDep = invested - inv0;            // apports nets ajoutés pendant la période
+  const base = v0 + Math.max(netDep, 0);     // capital mobilisé sur la période
+  const perf = base ? ((value - v0 - netDep) / base) * 100 : 0;
   const div = DATA.dividends.filter(accFilter).reduce((a, r) => a + r.amount, 0);
   return { value, invested, gain, gainPct, perf, div };
 }
@@ -111,7 +122,7 @@ function renderKpis() {
   sub("value", `investi ${EUR.format(k.invested)}`, "");
   sub("gain", PCT(k.gainPct), k.gain >= 0 ? "pos" : "neg");
   sub("div", "encaissés (total)", "");
-  sub("perf", "sur la période", k.perf >= 0 ? "pos" : "neg");
+  sub("perf", "marché · hors apports", k.perf >= 0 ? "pos" : "neg");
 }
 
 /* ---------- charts (couleurs pilotées par le thème CSS) ---------- */
@@ -161,9 +172,10 @@ function renderDiv() {
 
 function doughnut(canvasId, labels, data) {
   const legendPos = window.innerWidth <= 768 ? "bottom" : "right";
+  const border = cssVar("--panel") || "#0e1411";
   return new Chart(document.getElementById(canvasId), {
     type: "doughnut",
-    data: { labels, datasets: [{ data, backgroundColor: COLORS, borderColor: "#0e1411", borderWidth: 3 }] },
+    data: { labels, datasets: [{ data, backgroundColor: doughnutColors(), borderColor: border, borderWidth: 3 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: "58%",
       plugins: { legend: { position: legendPos, labels: { boxWidth: 12, font: { size: 10 } } },
         tooltip: { callbacks: { label: (c) => `${c.label}: ${EUR.format(c.parsed)} (${(c.parsed / c.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(0)}%)` } } } },
@@ -240,8 +252,45 @@ function renderUpcoming() {
   });
 }
 
+/* prévisionnel : projection par scénarios de rendement, apports mensuels poursuivis */
+function renderForecast() {
+  destroy("forecast");
+  const p = palette(); Chart.defaults.color = p.tick;
+  const k = computeKpis();
+  const v0 = k.value || k.invested || 0;
+  const nbMonths = monthsSorted().length || 1;
+  const C = nbMonths ? Math.max(k.invested, 0) / nbMonths : 0; // apport mensuel moyen estimé
+  const H = forecastYears;
+  const year0 = new Date().getFullYear();
+  const labels = Array.from({ length: H + 1 }, (_, y) => String(year0 + y));
+  const scen = [
+    { name: "Pessimiste · 3 %/an", r: 0.03, color: p.red },
+    { name: "Neutre · 7 %/an", r: 0.07, color: p.cyan },
+    { name: "Optimiste · 11 %/an", r: 0.11, color: p.neon },
+  ];
+  const datasets = scen.map((s) => {
+    const rm = Math.pow(1 + s.r, 1 / 12) - 1;
+    let v = v0; const pts = [Math.round(v)];
+    for (let y = 1; y <= H; y++) { for (let m = 0; m < 12; m++) v = v * (1 + rm) + C; pts.push(Math.round(v)); }
+    return { label: s.name, data: pts, borderColor: s.color, backgroundColor: "transparent", fill: false, tension: .3, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4 };
+  });
+  // capital investi cumulé (apports projetés, sans rendement)
+  datasets.push({
+    label: "Capital investi", data: labels.map((_, y) => Math.round(k.invested + C * 12 * y)),
+    borderColor: p.gold, borderDash: [6, 5], borderWidth: 2, pointRadius: 0, fill: false,
+  });
+  charts.forecast = new Chart(document.getElementById("forecastChart"), {
+    type: "line", data: { labels, datasets },
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+      plugins: { legend: { labels: { boxWidth: 14 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${EUR.format(c.parsed.y)}` } } },
+      scales: { x: { grid: { color: p.grid } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
+  });
+  const note = document.getElementById("forecast-note");
+  if (note) note.textContent = `Base : ${EUR.format(v0)} aujourd'hui + ~${EUR.format(C)}/mois d'apports (moyenne historique). Hypothèses de rendement annuel, hors inflation. Projection non contractuelle.`;
+}
+
 function renderAll() {
-  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderTable(); renderUpcoming();
+  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderForecast(); renderTable(); renderUpcoming();
 }
 
 /* news éco : chargées depuis news.json (généré côté serveur depuis un flux RSS) */
@@ -366,6 +415,7 @@ async function boot() {
   wireTheme();
   wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });
   wireTabBar("#range-tabs", (tab) => { currentRange = +tab.dataset.range; });
+  wireTabBar("#forecast-tabs", (tab) => { forecastYears = +tab.dataset.years; });
   wireMlg();
   renderAll();
   renderNews();

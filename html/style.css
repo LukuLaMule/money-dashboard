@@ -167,7 +167,7 @@ body.mlg.shake { animation: shake .25s linear infinite; }
 /* ============================================================
    hero
    ============================================================ */
-.hero { position: relative; z-index: 3; text-align: center; padding: 48px 16px 24px; }
+.hero { position: relative; z-index: 100; text-align: center; padding: 48px 16px 24px; }
 .hero-glasses { font-size: 3rem; animation: glasses-drop 1.2s cubic-bezier(.34,1.56,.64,1) both; }
 @keyframes glasses-drop {
   0% { transform: translateY(-120px) rotate(-25deg); opacity: 0; }
@@ -244,7 +244,7 @@ body.mlg .mlg-btn::after { content: " ON"; }
 @media (prefers-reduced-motion: reduce) { .t-dropdown { transition: none !important; } }
 
 .theme-menu {
-  position: absolute; top: calc(100% + 8px); left: 0; z-index: 50;
+  position: absolute; top: calc(100% + 8px); left: 0; z-index: 200;
   min-width: 190px; padding: 6px;
   background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
   box-shadow: 0 14px 40px rgba(0,0,0,.45);
@@ -367,6 +367,7 @@ tbody tr:hover { background: rgba(57,255,20,.06); }
 .badge.pea { background: rgba(57,255,20,.15); color: var(--neon); }
 .badge.cto { background: rgba(0,229,255,.15); color: var(--cyan); }
 
+.forecast-note { font-size: .72rem; margin: 10px 2px 0; line-height: 1.5; }
 .updated { text-align: right; color: var(--muted); font-size: .8rem; margin-top: 14px; }
 
 /* footer */
