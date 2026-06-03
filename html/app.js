@@ -114,29 +114,38 @@ function renderKpis() {
   sub("perf", "sur la période", k.perf >= 0 ? "pos" : "neg");
 }
 
-/* ---------- charts ---------- */
-const gridColor = "rgba(255,255,255,.06)";
-Chart.defaults.font.family = "'Russo One', sans-serif";
-Chart.defaults.color = "#8a9a82";
+/* ---------- charts (couleurs pilotées par le thème CSS) ---------- */
+const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const withAlpha = (hex, aa) => (/^#[0-9a-fA-F]{6}$/.test(hex) ? hex + aa : hex);
+function palette() {
+  return {
+    neon: cssVar("--neon") || "#39ff14", cyan: cssVar("--cyan") || "#00e5ff",
+    gold: cssVar("--gold") || "#ffd000", red: cssVar("--red") || "#ff2b2b",
+    grid: cssVar("--border") || "rgba(255,255,255,.08)", tick: cssVar("--muted") || "#8a9a82",
+  };
+}
+Chart.defaults.font.family = "'Inter','Russo One',sans-serif";
 const destroy = (n) => { if (charts[n]) { charts[n].destroy(); delete charts[n]; } };
 
 function renderPerf() {
   destroy("perf");
+  const p = palette(); Chart.defaults.color = p.tick;
   const labels = monthsSorted().filter(inRange).map((d) => d.slice(0, 7));
   charts.perf = new Chart(document.getElementById("perfChart"), {
     type: "line",
     data: { labels, datasets: [
-      { label: "Valorisation", data: seriesFor("value"), borderColor: "#39ff14", backgroundColor: "rgba(57,255,20,.12)", fill: true, tension: .35, borderWidth: 3, pointRadius: 0, pointHoverRadius: 5, spanGaps: true },
-      { label: "Investi", data: seriesFor("invested"), borderColor: "#ffd000", borderDash: [6, 5], fill: false, tension: .25, borderWidth: 2, pointRadius: 0, spanGaps: true },
+      { label: "Valorisation", data: seriesFor("value"), borderColor: p.neon, backgroundColor: withAlpha(p.neon, "20"), fill: true, tension: .35, borderWidth: 3, pointRadius: 0, pointHoverRadius: 5, spanGaps: true },
+      { label: "Investi", data: seriesFor("invested"), borderColor: p.gold, borderDash: [6, 5], fill: false, tension: .25, borderWidth: 2, pointRadius: 0, spanGaps: true },
     ]},
     options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
       plugins: { legend: { labels: { boxWidth: 14 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y == null ? "—" : EUR.format(c.parsed.y)}` } } },
-      scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, ticks: { callback: (v) => EUR.format(v) } } } },
+      scales: { x: { grid: { color: p.grid } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
   });
 }
 
 function renderDiv() {
   destroy("div");
+  const p = palette(); Chart.defaults.color = p.tick;
   const byMonth = {};
   DATA.dividends.filter(accFilter).filter((d) => inRange(d.date.slice(0, 7) + "-01")).forEach((d) => {
     const m = d.date.slice(0, 7); byMonth[m] = (byMonth[m] || 0) + d.amount;
@@ -144,9 +153,9 @@ function renderDiv() {
   const labels = Object.keys(byMonth).sort();
   charts.div = new Chart(document.getElementById("divChart"), {
     type: "bar",
-    data: { labels, datasets: [{ label: "Dividendes", data: labels.map((l) => byMonth[l]), backgroundColor: "#00e5ff", borderRadius: 6 }] },
+    data: { labels, datasets: [{ label: "Dividendes", data: labels.map((l) => byMonth[l]), backgroundColor: p.cyan, borderRadius: 6 }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => EUR2.format(c.parsed.y) } } },
-      scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor }, ticks: { callback: (v) => EUR.format(v) } } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
   });
 }
 
@@ -306,12 +315,45 @@ function startRain() {
   }, 220);
 }
 function stopRain() { clearInterval(rainTimer); rainTimer = null; setTimeout(() => { document.getElementById("rain-layer").innerHTML = ""; }, 4000); }
+const isMlg = () => document.documentElement.dataset.theme === "mlg";
 function wireMlg() {
-  document.addEventListener("pointerdown", (e) => { hitmarker(e.clientX, e.clientY); if (document.body.classList.contains("mlg")) airhorn(); });
+  document.addEventListener("pointerdown", (e) => { if (!isMlg()) return; hitmarker(e.clientX, e.clientY); if (document.body.classList.contains("mlg")) airhorn(); });
   document.getElementById("mlg-toggle").addEventListener("click", () => {
+    if (!isMlg()) return;
     if (document.body.classList.toggle("mlg")) { airhorn(); startRain(); document.body.classList.add("shake"); setTimeout(() => document.body.classList.remove("shake"), 900); }
     else stopRain();
   });
+}
+
+/* ---------- thèmes ---------- */
+const THEME_LABELS = { mlg: "🎮 MLG", performance: "📈 Performance", wealth: "💎 Wealth", pur: "⚪ Pur" };
+function setTheme(name) {
+  if (!THEME_LABELS[name]) name = "mlg";
+  document.documentElement.dataset.theme = name;
+  try { localStorage.setItem("money-theme", name); } catch (e) {}
+  const cur = document.getElementById("theme-current");
+  if (cur) cur.textContent = THEME_LABELS[name];
+  document.querySelectorAll(".theme-opt").forEach((o) => o.setAttribute("aria-current", o.dataset.theme === name ? "true" : "false"));
+  if (name !== "mlg") { document.body.classList.remove("mlg", "shake"); stopRain(); }
+  if (DATA) renderAll(); // recharge les couleurs des graphs selon le thème
+}
+function wireTheme() {
+  const btn = document.getElementById("theme-btn");
+  const menu = document.getElementById("theme-menu");
+  if (!btn || !menu) return;
+  const closeMs = parseFloat(cssVar("--dropdown-close-dur")) || 150;
+  let open = false;
+  const openMenu = () => { menu.classList.remove("is-closing"); menu.classList.add("is-open"); btn.setAttribute("aria-expanded", "true"); open = true; };
+  const closeMenu = () => { menu.classList.remove("is-open"); menu.classList.add("is-closing"); btn.setAttribute("aria-expanded", "false"); open = false; setTimeout(() => menu.classList.remove("is-closing"), closeMs); };
+  btn.addEventListener("click", (e) => { e.stopPropagation(); open ? closeMenu() : openMenu(); });
+  document.addEventListener("click", (e) => { if (open && !menu.contains(e.target) && e.target !== btn) closeMenu(); });
+  menu.querySelectorAll(".theme-opt").forEach((o) => o.addEventListener("click", () => { setTheme(o.dataset.theme); closeMenu(); }));
+  // applique le thème sauvegardé (sans re-render, DATA pas encore prête)
+  let saved = "mlg";
+  try { saved = localStorage.getItem("money-theme") || "mlg"; } catch (e) {}
+  document.documentElement.dataset.theme = THEME_LABELS[saved] ? saved : "mlg";
+  if (document.getElementById("theme-current")) document.getElementById("theme-current").textContent = THEME_LABELS[document.documentElement.dataset.theme];
+  document.querySelectorAll(".theme-opt").forEach((o) => o.setAttribute("aria-current", o.dataset.theme === document.documentElement.dataset.theme ? "true" : "false"));
 }
 
 /* ============================================================
@@ -321,6 +363,7 @@ async function boot() {
   try { DATA = await (await fetch("data.json", { cache: "no-store" })).json(); }
   catch (e) { document.querySelector(".wrap").innerHTML = `<div class="card"><h2 class="card-title">⚠️ data.json introuvable</h2></div>`; return; }
   document.getElementById("lastUpdate").textContent = new Date(DATA.lastUpdate).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  wireTheme();
   wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });
   wireTabBar("#range-tabs", (tab) => { currentRange = +tab.dataset.range; });
   wireMlg();

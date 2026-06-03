@@ -13,14 +13,14 @@
   /* Tabs sliding */
   --tabs-dur: 200ms;
   --tabs-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --tabs-text-muted: rgba(255, 255, 255, 0.55);
+  --tabs-text-muted: var(--muted);
   --tabs-text-active: #0a0a0a;
-  --tabs-bar-bg: #11150f;
-  --tabs-pill-bg: #39ff14;
+  --tabs-bar-bg: var(--panel-2);
+  --tabs-pill-bg: var(--neon);
   /* Shimmer text */
   --shimmer-dur: 2000ms;
-  --shimmer-base: #5a5a5a;
-  --shimmer-highlight: #39ff14;
+  --shimmer-base: var(--muted);
+  --shimmer-highlight: var(--neon);
   --shimmer-band: 400%;
   --shimmer-ease: linear;
   /* Texts reveal */
@@ -30,17 +30,70 @@
   --stagger-blur: 3px;
   --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* palette MLG */
+  /* Menu dropdown (transitions-dev) */
+  --dropdown-open-dur: 250ms;
+  --dropdown-close-dur: 150ms;
+  --dropdown-pre-scale: 0.97;
+  --dropdown-closing-scale: 0.99;
+  --dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* palette + polices par défaut = thème MLG */
   --bg: #07080a;
   --panel: #0e1411;
   --panel-2: #121a14;
-  --neon: #39ff14;
-  --cyan: #00e5ff;
+  --neon: #39ff14;      /* accent 1 / gains */
+  --cyan: #00e5ff;      /* accent 2 */
   --pink: #ff2e97;
   --gold: #ffd000;
-  --red: #ff2b2b;
+  --red: #ff2b2b;       /* pertes */
   --txt: #e8ffe1;
   --muted: #8a9a82;
+  --border: rgba(57,255,20,.18);
+  --glow1: rgba(57,255,20,.08);
+  --glow2: rgba(0,229,255,.08);
+  --font-display: "Press Start 2P", monospace;
+  --font-body: "Russo One", system-ui, sans-serif;
+  --font-num: "Press Start 2P", monospace;
+  --radius: 14px;
+}
+
+/* ============================================================
+   THÈME PERFORMANCE — terminal trading, néon sur sombre
+   ============================================================ */
+html[data-theme="performance"] {
+  --bg: #0a0e14; --panel: #0f1620; --panel-2: #131c28;
+  --neon: #2fe6a0; --cyan: #3b9bff; --pink: #ff5d8f; --gold: #ffcf4d; --red: #ff5252;
+  --txt: #e6edf5; --muted: #7d8da0; --border: rgba(120,160,200,.16);
+  --glow1: rgba(47,230,160,.07); --glow2: rgba(59,155,255,.07);
+  --font-display: "Space Grotesk", "JetBrains Mono", monospace;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-num: "JetBrains Mono", monospace;
+}
+
+/* ============================================================
+   THÈME WEALTH — luxe, or sur noir chaud
+   ============================================================ */
+html[data-theme="wealth"] {
+  --bg: #0c0b09; --panel: #15120d; --panel-2: #1d1812;
+  --neon: #cBA44e; --cyan: #d8c48f; --pink: #b98a4b; --gold: #e7c977; --red: #c77b7b;
+  --txt: #f3ead6; --muted: #9d917a; --border: rgba(201,164,78,.22);
+  --glow1: rgba(201,164,78,.10); --glow2: rgba(201,164,78,.05);
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-num: "Playfair Display", Georgia, serif;
+}
+
+/* ============================================================
+   THÈME PUR — minimaliste clair, façon Apple
+   ============================================================ */
+html[data-theme="pur"] {
+  --bg: #f6f7f9; --panel: #ffffff; --panel-2: #ffffff;
+  --neon: #16a34a; --cyan: #2563eb; --pink: #db2777; --gold: #b88300; --red: #dc2626;
+  --txt: #0f172a; --muted: #64748b; --border: rgba(15,23,42,.10);
+  --glow1: rgba(37,99,235,.05); --glow2: rgba(22,163,74,.05);
+  --font-display: "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-num: "Inter", system-ui, sans-serif;
 }
 
 /* ============================================================
@@ -51,12 +104,13 @@ html, body { margin: 0; padding: 0; }
 body {
   background: var(--bg);
   color: var(--txt);
-  font-family: "Russo One", "Arial Black", system-ui, sans-serif;
+  font-family: var(--font-body);
   min-height: 100vh;
   overflow-x: hidden;
   background-image:
-    radial-gradient(circle at 20% 0%, rgba(57,255,20,.08), transparent 45%),
-    radial-gradient(circle at 80% 100%, rgba(0,229,255,.08), transparent 45%);
+    radial-gradient(circle at 20% 0%, var(--glow1), transparent 45%),
+    radial-gradient(circle at 80% 100%, var(--glow2), transparent 45%);
+  transition: background-color .4s ease, color .4s ease;
 }
 h1, h2 { margin: 0; }
 .muted { color: var(--muted); font-weight: 400; font-size: .7em; }
@@ -121,12 +175,16 @@ body.mlg.shake { animation: shake .25s linear infinite; }
   100%{ transform: translateY(0) rotate(0); }
 }
 .hero h1 {
-  font-family: "Press Start 2P", monospace;
+  font-family: var(--font-display);
   font-size: clamp(1.1rem, 4.5vw, 3rem);
   letter-spacing: 2px; margin: 10px 0;
   color: var(--neon);
-  text-shadow: 0 0 8px var(--neon), 0 0 24px rgba(57,255,20,.5);
+  text-shadow: 0 0 8px var(--neon), 0 0 24px color-mix(in srgb, var(--neon) 45%, transparent);
 }
+/* hors MLG : titre plus sobre, sans halo criard */
+html:not([data-theme="mlg"]) .hero h1 { text-shadow: none; letter-spacing: 1px; }
+html[data-theme="wealth"] .hero h1 { color: var(--gold); font-weight: 800; }
+html[data-theme="pur"] .hero h1 { color: var(--txt); }
 .hero-sub { font-size: clamp(.75rem,2.2vw,1.1rem); letter-spacing: 3px; margin: 6px 0 18px; }
 
 /* glitch */
@@ -147,6 +205,69 @@ body.mlg.shake { animation: shake .25s linear infinite; }
 }
 .mlg-btn:active { transform: translateY(4px); box-shadow: 0 0 0 2px #000, 0 2px 0 #0a3b08; }
 body.mlg .mlg-btn::after { content: " ON"; }
+
+/* ============================================================
+   Sélecteur de thème + transitions-dev menu-dropdown
+   ============================================================ */
+.hero-actions { display: inline-flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.theme-picker { position: relative; }
+.theme-btn {
+  font-family: var(--font-body); font-size: .85rem; cursor: pointer;
+  background: var(--panel-2); color: var(--txt);
+  border: 1px solid var(--border); border-radius: 10px; padding: 9px 14px;
+  display: inline-flex; gap: 8px; align-items: center;
+  transition: border-color .15s ease, background .15s ease;
+}
+.theme-btn:hover { border-color: var(--neon); }
+.theme-btn .chev { color: var(--muted); transition: transform .2s var(--dropdown-ease); }
+.theme-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+/* menu-dropdown (transitions-dev, verbatim) */
+.t-dropdown {
+  transform-origin: top left;
+  transform: scale(var(--dropdown-pre-scale));
+  opacity: 0; pointer-events: none;
+  transition:
+    transform var(--dropdown-open-dur) var(--dropdown-ease),
+    opacity   var(--dropdown-open-dur) var(--dropdown-ease);
+  will-change: transform, opacity;
+}
+.t-dropdown[data-origin="top-right"]     { transform-origin: top right; }
+.t-dropdown[data-origin="top-center"]    { transform-origin: top center; }
+.t-dropdown.is-open { transform: scale(1); opacity: 1; pointer-events: auto; }
+.t-dropdown.is-closing {
+  transform: scale(var(--dropdown-closing-scale)); opacity: 0; pointer-events: none;
+  transition:
+    transform var(--dropdown-close-dur) var(--dropdown-ease),
+    opacity   var(--dropdown-close-dur) var(--dropdown-ease);
+}
+@media (prefers-reduced-motion: reduce) { .t-dropdown { transition: none !important; } }
+
+.theme-menu {
+  position: absolute; top: calc(100% + 8px); left: 0; z-index: 50;
+  min-width: 190px; padding: 6px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.45);
+}
+html[data-theme="pur"] .theme-menu { box-shadow: 0 14px 40px rgba(15,23,42,.14); }
+.theme-opt {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: transparent; color: var(--txt); border: 0; border-radius: 8px;
+  font-family: var(--font-body); font-size: .9rem; padding: 10px 12px;
+  transition: background .12s ease;
+}
+.theme-opt:hover { background: color-mix(in srgb, var(--neon) 14%, transparent); }
+.theme-opt[aria-current="true"] { color: var(--neon); font-weight: 600; }
+
+/* ============================================================
+   Gating des décorations MLG (uniquement thème mlg)
+   ============================================================ */
+html:not([data-theme="mlg"]) .glitch::before,
+html:not([data-theme="mlg"]) .glitch::after { content: none; display: none; }
+html:not([data-theme="mlg"]) .hero-glasses { display: none; }
+html:not([data-theme="mlg"]) #mlg-toggle { display: none; }
+html:not([data-theme="mlg"]) #rgb-overlay,
+html:not([data-theme="mlg"]) #illuminati { display: none; }
 
 /* ============================================================
    transitions-dev — Shimmer text (verbatim)
@@ -214,15 +335,20 @@ body.mlg .mlg-btn::after { content: " ON"; }
 
 .card {
   background: linear-gradient(180deg,var(--panel),var(--panel-2));
-  border: 1px solid rgba(57,255,20,.18);
-  border-radius: 14px; padding: 16px;
-  box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.5), inset 0 0 30px rgba(57,255,20,.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 0 30px var(--glow1);
 }
+/* thème clair : ombre douce au lieu du halo sombre */
+html[data-theme="pur"] .card { box-shadow: 0 1px 3px rgba(15,23,42,.06), 0 8px 24px rgba(15,23,42,.06); }
 .card-title { font-size: 1rem; letter-spacing: 1px; margin-bottom: 12px; color: var(--txt); }
 
 .kpi { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .kpi-label { font-size: .72rem; color: var(--muted); letter-spacing: 1px; }
-.kpi-value { font-family: "Press Start 2P", monospace; font-size: clamp(.95rem,2.4vw,1.5rem); color: var(--neon); text-shadow: 0 0 10px rgba(57,255,20,.5); }
+.kpi-value { font-family: var(--font-num); font-size: clamp(.95rem,2.4vw,1.5rem); color: var(--neon); text-shadow: 0 0 10px color-mix(in srgb, var(--neon) 45%, transparent); }
+html:not([data-theme="mlg"]) .kpi-value { text-shadow: none; }
+html[data-theme="wealth"] .kpi-value { color: var(--gold); }
+html[data-theme="pur"] .kpi-value, html[data-theme="performance"] .kpi-value { color: var(--txt); }
 .kpi-sub { font-size: .8rem; }
 .pos { color: var(--neon); } .neg { color: var(--red); }
 
