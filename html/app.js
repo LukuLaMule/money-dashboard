@@ -342,7 +342,6 @@ function renderForecast() {
   const rv = document.getElementById("forecast-rate-val"); if (rv) rv.textContent = rate + " %";
   const infl = !!(document.getElementById("forecast-infl") && document.getElementById("forecast-infl").checked);
   const divOn = !(document.getElementById("forecast-div") && !document.getElementById("forecast-div").checked); // défaut: oui
-  const goal = Math.max(0, val("forecast-goal", 0));
   const H = forecastYears;
   const year0 = new Date().getFullYear();
   const labels = Array.from({ length: H + 1 }, (_, y) => String(year0 + y));
@@ -358,12 +357,10 @@ function renderForecast() {
     { name: `Attendu · ${rEff(rate).toFixed(1)} %/an`, r: rEff(rate) / 100, color: p.cyan },
     { name: `Optimiste · ${rEff(rate + 4).toFixed(1)} %/an`, r: rEff(rate + 4) / 100, color: p.neon },
   ];
-  let neutral = [];
-  const datasets = rates.map((s, si) => {
+  const datasets = rates.map((s) => {
     const rm = Math.pow(1 + s.r, 1 / 12) - 1;
     let v = v0; const pts = [Math.round(v / defl(0))];
     for (let y = 1; y <= H; y++) { for (let m = 0; m < 12; m++) v = v * (1 + rm) + C; pts.push(Math.round(v / defl(y))); }
-    if (si === 1) neutral = pts;
     return { label: s.name, data: pts, borderColor: s.color, backgroundColor: "transparent", fill: false, tension: .3, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4 };
   });
   datasets.push({
@@ -376,19 +373,12 @@ function renderForecast() {
       plugins: { legend: { labels: { boxWidth: 14 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${EUR.format(c.parsed.y)}` } } },
       scales: { x: { grid: { color: p.grid } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
   });
-  let goalTxt = "";
-  if (goal > 0) {
-    const idx = neutral.findIndex((v) => v >= goal);
-    goalTxt = idx >= 0
-      ? ` 🎯 Objectif ${EUR.format(goal)} atteint vers ${year0 + idx} (scénario attendu).`
-      : ` 🎯 Objectif ${EUR.format(goal)} non atteint en ${H} ans (scénario attendu).`;
-  }
   const note = document.getElementById("forecast-note");
   if (note) note.textContent = `Base ${EUR.format(v0)} + ${EUR.format(C)}/mois sur ${H} ans · rendement marché ${rate} %/an`
     + (wLev > 1.001 ? ` × levier moyen ×${wLev.toFixed(2)}` : "")
     + (yld ? ` + ${yld.toFixed(1)} % div. réinvestis` : "")
     + (infl ? " · euros constants (infl. 2 %)" : "")
-    + `. Projection non contractuelle.${goalTxt}`;
+    + ". Projection non contractuelle.";
 }
 
 function renderAll() {
@@ -544,7 +534,7 @@ async function boot() {
   wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });
   wireTabBar("#range-tabs", (tab) => { currentRange = +tab.dataset.range; });
   wireTabBar("#forecast-tabs", (tab) => { forecastYears = +tab.dataset.years; });
-  ["forecast-monthly", "forecast-rate", "forecast-goal", "forecast-infl", "forecast-div"].forEach((id) => {
+  ["forecast-monthly", "forecast-rate", "forecast-infl", "forecast-div"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("input", () => { if (DATA) renderForecast(); });
     if (el && el.type === "checkbox") el.addEventListener("change", () => { if (DATA) renderForecast(); });
