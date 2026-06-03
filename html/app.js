@@ -177,16 +177,27 @@ function renderPerf() {
     { label: "Valorisation", data: valSeries, borderColor: p.neon, backgroundColor: withAlpha(p.neon, "20"), fill: true, tension: .35, borderWidth: 3, spanGaps: true, ...lastDot(p.neon) },
     { label: "Investi", data: invSeries, borderColor: p.gold, borderDash: [6, 5], fill: false, tension: .25, borderWidth: 2, spanGaps: true, ...lastDot(p.gold) },
   ];
-  // overlay indice rebasé sur la 1ère valeur visible du portefeuille
+  // comparaison indice : "si j'avais investi MES apports (DCA) sur l'indice depuis le début"
   if (currentBench && BENCH[currentBench]) {
     const series = BENCH[currentBench];
-    const bi = labels.findIndex((l, i) => valSeries[i] != null && series[l + "-01"] != null);
-    if (bi >= 0) {
-      const factor = valSeries[bi] / series[labels[bi] + "-01"];
-      const data = labels.map((l) => (series[l + "-01"] != null ? Math.round(series[l + "-01"] * factor) : null));
-      const benchColor = "#ff2e97"; // magenta vif fixe → visible sur tous les thèmes
-      datasets.push({ label: currentBench + " (rebasé)", data, borderColor: benchColor, backgroundColor: benchColor, borderDash: [8, 4], borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4, fill: false, spanGaps: true });
+    const allMonths = monthsSorted();
+    const investedAt = (d) => DATA.snapshots.filter((s) => s.date === d && accFilter(s) && s.invested != null).reduce((a, r) => a + r.invested, 0);
+    const priceAt = (m) => {
+      if (series[m] != null) return series[m];
+      const ks = Object.keys(series).filter((k) => k <= m).sort();
+      return ks.length ? series[ks[ks.length - 1]] : null;
+    };
+    let units = 0, prevInv = 0;
+    const whatif = {};
+    for (const d of allMonths) {
+      const price = priceAt(d), inv = investedAt(d), contrib = inv - prevInv;
+      prevInv = inv;
+      if (price) { units += contrib / price; whatif[d] = Math.round(units * price); }
+      else whatif[d] = null;
     }
+    const data = allMonths.filter(inRange).map((d) => whatif[d]);
+    const benchColor = "#ff2e97"; // magenta vif fixe → visible sur tous les thèmes
+    datasets.push({ label: `Si investi sur ${currentBench}`, data, borderColor: benchColor, backgroundColor: benchColor, borderDash: [8, 4], borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4, fill: false, spanGaps: true });
   }
   charts.perf = new Chart(document.getElementById("perfChart"), {
     type: "line",
@@ -463,6 +474,54 @@ function airhorn() {
     });
   } catch (e) {}
 }
+function gunshot() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+    // détonation : bruit blanc filtré + claquement
+    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.18, audioCtx.sampleRate);
+    const dch = buf.getChannelData(0);
+    for (let i = 0; i < dch.length; i++) dch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / dch.length, 2);
+    const src = audioCtx.createBufferSource(); src.buffer = buf;
+    const lp = audioCtx.createBiquadFilter(); lp.type = "lowpass";
+    lp.frequency.setValueAtTime(2000, now); lp.frequency.exponentialRampToValueAtTime(300, now + 0.15);
+    const g = audioCtx.createGain(); g.gain.setValueAtTime(0.5, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    src.connect(lp).connect(g).connect(audioCtx.destination); src.start(now);
+    // thump grave
+    const o = audioCtx.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(95, now); o.frequency.exponentialRampToValueAtTime(40, now + 0.12);
+    const g2 = audioCtx.createGain(); g2.gain.setValueAtTime(0.5, now); g2.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+    o.connect(g2).connect(audioCtx.destination); o.start(now); o.stop(now + 0.15);
+  } catch (e) {}
+}
+// fichiers perso optionnels (déposés dans html/assets/) — sinon rendu synthétisé
+let QS_AUDIO = null, QS_GIF_OK = false;
+function initQuickAssets() {
+  const a = new Audio("/assets/quickscope.mp3");
+  a.preload = "auto"; a.volume = 0.7;
+  a.addEventListener("canplaythrough", () => { QS_AUDIO = a; });
+  const g = document.getElementById("qs-gif");
+  if (g) {
+    g.addEventListener("load", () => { QS_GIF_OK = g.naturalWidth > 0; });
+    g.addEventListener("error", () => { QS_GIF_OK = false; });
+    g.src = "/assets/quickscope.gif";
+  }
+}
+function quickscope() {
+  const s = document.getElementById("scope"), f = document.getElementById("flash"), g = document.getElementById("qs-gif");
+  // son : fichier perso si présent, sinon synthèse
+  if (QS_AUDIO) { try { QS_AUDIO.currentTime = 0; QS_AUDIO.play().catch(() => gunshot()); } catch (e) { gunshot(); } }
+  else gunshot();
+  // visuel : gif perso si présent, sinon lunette CSS
+  if (QS_GIF_OK && g) {
+    g.classList.remove("is-on"); void g.offsetWidth; g.classList.add("is-on");
+    setTimeout(() => g.classList.remove("is-on"), 1200);
+  } else if (s) {
+    s.classList.remove("is-on"); void s.offsetWidth; s.classList.add("is-on");
+    setTimeout(() => s.classList.remove("is-on"), 470);
+  }
+  setTimeout(() => { if (f) { f.classList.remove("is-on"); void f.offsetWidth; f.classList.add("is-on"); setTimeout(() => f.classList.remove("is-on"), 220); } }, 110);
+}
 function hitmarker(x, y) {
   const m = document.createElement("div"); m.className = "hitmarker"; m.textContent = "✛";
   m.style.left = x + "px"; m.style.top = y + "px";
@@ -483,7 +542,7 @@ function startRain() {
 function stopRain() { clearInterval(rainTimer); rainTimer = null; setTimeout(() => { document.getElementById("rain-layer").innerHTML = ""; }, 4000); }
 const isMlg = () => document.documentElement.dataset.theme === "mlg";
 function wireMlg() {
-  document.addEventListener("pointerdown", (e) => { if (!isMlg()) return; hitmarker(e.clientX, e.clientY); if (document.body.classList.contains("mlg")) airhorn(); });
+  document.addEventListener("pointerdown", (e) => { if (!isMlg()) return; hitmarker(e.clientX, e.clientY); quickscope(); });
   document.getElementById("mlg-toggle").addEventListener("click", () => {
     if (!isMlg()) return;
     if (document.body.classList.toggle("mlg")) { airhorn(); startRain(); document.body.classList.add("shake"); setTimeout(() => document.body.classList.remove("shake"), 900); }
@@ -563,6 +622,7 @@ async function boot() {
     if (el && el.type === "checkbox") el.addEventListener("change", () => { if (DATA) renderForecast(); });
   });
   wirePositionsSort();
+  initQuickAssets();
   wireMlg();
   renderAll();
   renderNews();
