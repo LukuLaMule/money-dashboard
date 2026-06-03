@@ -389,12 +389,23 @@ function wireMlg() {
 
 /* ---------- thèmes ---------- */
 const THEME_LABELS = { mlg: "🎮 MLG", performance: "📈 Performance", wealth: "💎 Wealth", pur: "⚪ Pur" };
+const THEME_SUB = {
+  mlg: "PEA × CTO · 420% NOSCOPE PORTFOLIO · READ ONLY",
+  performance: "PEA × CTO · SUIVI DE PORTEFEUILLE · LECTURE SEULE",
+  wealth: "PEA × CTO · Gestion de patrimoine · Lecture seule",
+  pur: "PEA × CTO · Lecture seule",
+};
+function applyThemeSub(name) {
+  const el = document.querySelector(".hero-sub");
+  if (el) el.textContent = THEME_SUB[name] || THEME_SUB.mlg;
+}
 function setTheme(name) {
   if (!THEME_LABELS[name]) name = "mlg";
   document.documentElement.dataset.theme = name;
   try { localStorage.setItem("money-theme", name); } catch (e) {}
   const cur = document.getElementById("theme-current");
   if (cur) cur.textContent = THEME_LABELS[name];
+  applyThemeSub(name);
   document.querySelectorAll(".theme-opt").forEach((o) => o.setAttribute("aria-current", o.dataset.theme === name ? "true" : "false"));
   if (name !== "mlg") { document.body.classList.remove("mlg", "shake"); stopRain(); }
   if (DATA) renderAll(); // recharge les couleurs des graphs selon le thème
@@ -415,6 +426,7 @@ function wireTheme() {
   try { saved = localStorage.getItem("money-theme") || "mlg"; } catch (e) {}
   document.documentElement.dataset.theme = THEME_LABELS[saved] ? saved : "mlg";
   if (document.getElementById("theme-current")) document.getElementById("theme-current").textContent = THEME_LABELS[document.documentElement.dataset.theme];
+  applyThemeSub(document.documentElement.dataset.theme);
   document.querySelectorAll(".theme-opt").forEach((o) => o.setAttribute("aria-current", o.dataset.theme === document.documentElement.dataset.theme ? "true" : "false"));
 }
 

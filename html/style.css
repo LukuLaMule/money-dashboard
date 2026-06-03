@@ -36,6 +36,15 @@
   --dropdown-pre-scale: 0.97;
   --dropdown-closing-scale: 0.99;
   --dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Tooltip (transitions-dev) */
+  --tt-in-dur: 150ms;
+  --tt-out-dur: 50ms;
+  --tt-scale: 0.98;
+  --tt-delay: 80ms;
+  --tt-in-ease: ease-out;
+  --tt-out-ease: ease-out;
+  --tt-bg: var(--panel-2);
+  --tt-fg: var(--txt);
 
   /* palette + polices par défaut = thème MLG */
   --bg: #07080a;
@@ -258,6 +267,31 @@ html[data-theme="pur"] .theme-menu { box-shadow: 0 14px 40px rgba(15,23,42,.14);
 }
 .theme-opt:hover { background: color-mix(in srgb, var(--neon) 14%, transparent); }
 .theme-opt[aria-current="true"] { color: var(--neon); font-weight: 600; }
+
+/* ============================================================
+   transitions-dev — Tooltip (verbatim + adaptations thème)
+   ============================================================ */
+.t-tt-wrap { position: relative; display: inline-block; }
+.t-tt-trigger {
+  appearance: none; border: 0; background: transparent; cursor: help; padding: 0 0 0 5px;
+  color: var(--muted); font-size: .78rem; line-height: 1; opacity: .8;
+}
+.t-tt-trigger:hover { opacity: 1; }
+.t-tt {
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translate(-50%, 0) scale(var(--tt-scale)); transform-origin: 50% 100%;
+  width: 230px; max-width: 60vw; padding: 10px 12px; border-radius: 10px;
+  background: var(--tt-bg); color: var(--tt-fg); border: 1px solid var(--border);
+  white-space: normal; font-family: var(--font-body); font-size: .8rem; line-height: 1.45;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18), 0 8px 30px rgba(0,0,0,.22);
+  opacity: 0; pointer-events: none; z-index: 300;
+  transition: opacity var(--tt-out-dur) var(--tt-out-ease), transform var(--tt-out-dur) var(--tt-out-ease);
+}
+.t-tt-wrap:hover .t-tt, .t-tt-trigger:focus-visible + .t-tt {
+  opacity: 1; transform: translate(-50%, 0) scale(1);
+  transition-duration: var(--tt-in-dur); transition-timing-function: var(--tt-in-ease); transition-delay: var(--tt-delay);
+}
+@media (prefers-reduced-motion: reduce) { .t-tt { transition: none !important; } }
 
 /* ============================================================
    Gating des décorations MLG (uniquement thème mlg)
