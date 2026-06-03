@@ -1,0 +1,27 @@
+{
+  "_comment": "EXEMPLE anonymisé. Copier vers data.json et remplir avec tes données (ou générer via les scripts tools/).",
+  "currency": "EUR",
+  "owner": "DEMO",
+  "lastUpdate": "2026-01-01",
+  "accounts": [
+    { "id": "pea", "label": "PEA", "broker": "Courtier A", "color": "#39ff14" },
+    { "id": "cto", "label": "CTO", "broker": "Courtier B", "color": "#00e5ff" }
+  ],
+  "snapshots": [
+    { "date": "2025-01-01", "account": "pea", "invested": 1000, "value": 1000 },
+    { "date": "2025-07-01", "account": "pea", "invested": 1600, "value": 1750 },
+    { "date": "2026-01-01", "account": "pea", "invested": 2200, "value": 2600 },
+    { "date": "2025-01-01", "account": "cto", "invested": 500, "value": 500 },
+    { "date": "2025-07-01", "account": "cto", "invested": 800, "value": 920 },
+    { "date": "2026-01-01", "account": "cto", "invested": 1100, "value": 1400 }
+  ],
+  "dividends": [
+    { "date": "2025-05-15", "account": "pea", "isin": "FR0000000001", "ticker": "ACT1", "label": "Action Démo 1", "amount": 12.5 },
+    { "date": "2025-06-20", "account": "cto", "isin": "US0000000001", "ticker": "ACT2", "label": "Action Démo 2", "amount": 4.2 }
+  ],
+  "positions": [
+    { "account": "pea", "ticker": "ETFW", "label": "ETF Monde Démo", "isin": "LU0000000001", "shares": 10, "pru": 90, "last": 110 },
+    { "account": "pea", "ticker": "ACT1", "label": "Action Démo 1", "isin": "FR0000000001", "shares": 8, "pru": 50, "last": 58 },
+    { "account": "cto", "ticker": "ACT2", "label": "Action Démo 2", "isin": "US0000000001", "value": 1400, "gainPct": 27.3 }
+  ]
+}

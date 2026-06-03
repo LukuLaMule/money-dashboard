@@ -1,4 +1,14 @@
-# pas de secrets ici, mais au cas où
+# secrets / système
 .env
 *.log
 .DS_Store
+
+# ── Données financières réelles (NE PAS publier) ──
+html/data.json
+html/news.json
+tools/prices.json
+tools/price_history.json
+tools/cto_positions.json
+tools/cto_value.txt
+tools/symbols.json
+tools/sources/

@@ -56,3 +56,9 @@ Format libre au départ (CSV, copier-coller, capture lisible, export Finary/cour
 - nginx (statique) + Chart.js 4 (CDN) — aucune base de données.
 - Animations : skill **transitions.dev** (number pop-in, tabs sliding, shimmer).
 - Thème : MLG montage parody (hitmarkers, airhorn WebAudio, pluie Doritos/Mountain Dew).
+
+## Données (repo public)
+Les fichiers de données réelles sont **gitignorés** (non publiés) : `html/data.json`,
+`tools/prices.json`, `tools/price_history.json`, `tools/cto_positions.json`, `tools/sources/`…
+Pour faire tourner le dashboard : `cp html/data.example.json html/data.json` puis remplis-le
+(ou génère-le via les scripts `tools/`). Voir `tools/cto_positions.example.json` pour le CTO.
