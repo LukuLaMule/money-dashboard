@@ -194,7 +194,10 @@ body.mlg.shake { animation: shake .25s linear infinite; }
 html:not([data-theme="mlg"]) .hero h1 { text-shadow: none; letter-spacing: 1px; }
 html[data-theme="wealth"] .hero h1 { color: var(--gold); font-weight: 800; }
 html[data-theme="pur"] .hero h1 { color: var(--txt); }
-.hero-tagline { font-family: var(--font-body); font-weight: 700; font-size: clamp(1rem, 3vw, 1.6rem); letter-spacing: 1px; margin: 10px 0 2px; }
+.hero-tagline { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.5rem, 5.5vw, 2.8rem); letter-spacing: 1px; margin: 14px 0 4px; color: var(--neon); line-height: 1.15; }
+html[data-theme="mlg"] .hero-tagline { font-size: clamp(.95rem, 3.4vw, 1.7rem); text-shadow: 0 0 10px color-mix(in srgb, var(--neon) 50%, transparent); }
+html[data-theme="wealth"] .hero-tagline { color: var(--gold); }
+html[data-theme="pur"] .hero-tagline { color: var(--txt); }
 .hero-sub { font-size: clamp(.7rem,2vw,1rem); letter-spacing: 3px; margin: 2px 0 18px; color: var(--muted); }
 
 /* glitch */

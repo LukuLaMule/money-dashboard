@@ -184,7 +184,8 @@ function renderPerf() {
     if (bi >= 0) {
       const factor = valSeries[bi] / series[labels[bi] + "-01"];
       const data = labels.map((l) => (series[l + "-01"] != null ? Math.round(series[l + "-01"] * factor) : null));
-      datasets.push({ label: currentBench + " (rebasé)", data, borderColor: p.pink, borderDash: [2, 3], borderWidth: 2, pointRadius: 0, fill: false, spanGaps: true });
+      const benchColor = "#ff2e97"; // magenta vif fixe → visible sur tous les thèmes
+      datasets.push({ label: currentBench + " (rebasé)", data, borderColor: benchColor, backgroundColor: benchColor, borderDash: [8, 4], borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4, fill: false, spanGaps: true });
     }
   }
   charts.perf = new Chart(document.getElementById("perfChart"), {
@@ -502,13 +503,23 @@ function applyThemeSub(name) {
   const el = document.querySelector(".hero-sub");
   if (el) el.textContent = THEME_SUB[name] || THEME_SUB.mlg;
 }
+const THEME_TAGLINE = {
+  mlg: "💸 DEVIENS RICHE COMME LUKU 💸",
+  performance: "Deviens riche comme Luku",
+  wealth: "Deviens riche comme Luku",
+  pur: "Deviens riche comme Luku",
+};
+function applyThemeTagline(name) {
+  const el = document.getElementById("hero-tagline");
+  if (el) el.textContent = THEME_TAGLINE[name] || THEME_TAGLINE.mlg;
+}
 function setTheme(name) {
   if (!THEME_LABELS[name]) name = "mlg";
   document.documentElement.dataset.theme = name;
   try { localStorage.setItem("money-theme", name); } catch (e) {}
   const cur = document.getElementById("theme-current");
   if (cur) cur.textContent = THEME_LABELS[name];
-  applyThemeSub(name);
+  applyThemeSub(name); applyThemeTagline(name);
   document.querySelectorAll(".theme-opt").forEach((o) => o.setAttribute("aria-current", o.dataset.theme === name ? "true" : "false"));
   if (name !== "mlg") { document.body.classList.remove("mlg", "shake"); stopRain(); }
   if (DATA) renderAll(); // recharge les couleurs des graphs selon le thème
