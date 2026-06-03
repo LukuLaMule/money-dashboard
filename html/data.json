@@ -363,7 +363,7 @@
       "date": "2026-06-01",
       "account": "cto",
       "invested": 1019.89,
-      "value": 1214.89
+      "value": 1270.72
     }
   ],
   "dividends": [
@@ -978,6 +978,90 @@
       "shares": 3.0,
       "pru": 30.05,
       "last": 37.217
+    },
+    {
+      "account": "cto",
+      "ticker": "ARMADR",
+      "label": "ARM (ADR)",
+      "isin": "US0420682058",
+      "value": 423.49,
+      "gainPct": 182.33,
+      "cost": 150.0,
+      "shares": null,
+      "pru": null,
+      "last": null
+    },
+    {
+      "account": "cto",
+      "ticker": "AMD",
+      "label": "AMD",
+      "isin": "US0079031078",
+      "value": 263.43,
+      "gainPct": 75.62,
+      "cost": 150.0,
+      "shares": null,
+      "pru": null,
+      "last": null
+    },
+    {
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "Microsoft",
+      "isin": "US5949181045",
+      "value": 237.16,
+      "gainPct": -7.0,
+      "cost": 255.01,
+      "shares": null,
+      "pru": null,
+      "last": null
+    },
+    {
+      "account": "cto",
+      "ticker": "BLOOME",
+      "label": "Bloom Energy",
+      "isin": "US0937121079",
+      "value": 216.52,
+      "gainPct": 45.32,
+      "cost": 149.0,
+      "shares": null,
+      "pru": null,
+      "last": null
+    },
+    {
+      "account": "cto",
+      "ticker": "GAMEST",
+      "label": "GameStop",
+      "isin": "US36467W1099",
+      "value": 40.3,
+      "gainPct": 0.75,
+      "cost": 40.0,
+      "shares": null,
+      "pru": null,
+      "last": null
+    },
+    {
+      "account": "cto",
+      "ticker": "BERKSH",
+      "label": "Berkshire Hathaway (A)",
+      "isin": "US0846701086",
+      "value": 23.58,
+      "gainPct": -10.39,
+      "cost": 26.31,
+      "shares": null,
+      "pru": null,
+      "last": null
+    },
+    {
+      "account": "cto",
+      "ticker": "MICROS",
+      "label": "MicroStrategy (A)",
+      "isin": "US5949724083",
+      "value": 15.77,
+      "gainPct": -68.46,
+      "cost": 50.0,
+      "shares": null,
+      "pru": null,
+      "last": null
     }
   ]
 }

@@ -154,6 +154,26 @@ def read_pytr_csv(path):
     return {"positions": positions}
 
 
+def build_positions_from_file(path, account):
+    """Positions saisies manuellement depuis l'app TR : value (€) + gainPct (perf depuis achat).
+    L'API TR ne sort pas le portefeuille. On déduit le coût d'acquisition de la perf."""
+    d = json.load(open(path, encoding="utf-8"))
+    cash = float(d.get("cash", 0) or 0)
+    positions, total = [], 0.0
+    for p in d.get("positions", []):
+        v = float(p["value"]); g = float(p.get("gainPct", 0) or 0)
+        cost = v / (1 + g / 100) if g != -100 else 0.0
+        positions.append({
+            "account": account, "ticker": ticker_from_title(p.get("label")),
+            "label": p.get("label") or p.get("isin"), "isin": p.get("isin"),
+            "value": round(v, 2), "gainPct": round(g, 2), "cost": round(cost, 2),
+            "shares": None, "pru": None, "last": None,
+        })
+        total += v
+    positions.sort(key=lambda x: -x["value"])
+    return positions, round(total + cash, 2)
+
+
 def build_positions(portfolio, txs, account, prices):
     """Positions exactes depuis compactPortfolio/pytr + noms timeline + cours."""
     if not portfolio:
@@ -199,6 +219,8 @@ def main():
     ap.add_argument("--portfolio", default=None, help="JSON compactPortfolio")
     ap.add_argument("--portfolio-csv", default=None, help="CSV `pytr portfolio`")
     ap.add_argument("--prices", default=None)
+    ap.add_argument("--positions-file", default=None,
+                    help="JSON de positions saisies manuellement (value + gainPct), ex. cto_positions.json")
     ap.add_argument("--current-value", type=float, default=None,
                     help="valeur totale actuelle du compte (autorité = app TR) si l'API ne sort pas les positions")
     ap.add_argument("--out", required=True)
@@ -218,7 +240,10 @@ def main():
     acc = args.account
     dividends = build_dividends(txs, acc)
     snapshots = build_invested_curve(txs, acc)
-    positions, cur_value = build_positions(portfolio, txs, acc, prices)
+    if args.positions_file:
+        positions, cur_value = build_positions_from_file(args.positions_file, acc)
+    else:
+        positions, cur_value = build_positions(portfolio, txs, acc, prices)
 
     # valeur totale : override manuel (app TR) prioritaire, sinon valo reconstruite
     if args.current_value is not None:

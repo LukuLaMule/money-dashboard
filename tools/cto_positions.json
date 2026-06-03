@@ -1,0 +1,14 @@
+{
+  "_comment": "Positions CTO saisies depuis l'app TR (mode 'Depuis l'achat'). value = valeur €, gainPct = perf depuis l'achat. L'API TR ne sort pas le portefeuille → saisie manuelle. Maj quand ça bouge.",
+  "asOf": "2026-06-03",
+  "cash": 50.47,
+  "positions": [
+    { "label": "ARM (ADR)",              "isin": "US0420682058", "value": 423.49, "gainPct": 182.33 },
+    { "label": "AMD",                     "isin": "US0079031078", "value": 263.43, "gainPct": 75.62 },
+    { "label": "Microsoft",               "isin": "US5949181045", "value": 237.16, "gainPct": -7.00 },
+    { "label": "Bloom Energy",            "isin": "US0937121079", "value": 216.52, "gainPct": 45.32 },
+    { "label": "GameStop",                "isin": "US36467W1099", "value": 40.30,  "gainPct": 0.75 },
+    { "label": "Berkshire Hathaway (A)",  "isin": "US0846701086", "value": 23.58,  "gainPct": -10.39 },
+    { "label": "MicroStrategy (A)",       "isin": "US5949724083", "value": 15.77,  "gainPct": -68.46 }
+  ]
+}

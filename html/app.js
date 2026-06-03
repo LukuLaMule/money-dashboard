@@ -30,6 +30,22 @@ function zoneOf(p) {
   return "🌐 Autre";
 }
 
+/* ---------- valeur / +/- value d'une position (gère 2 formes) ----------
+   - PEA : shares + pru + last  → value = shares*last
+   - CTO : value + gainPct (+ cost) saisis manuellement (qté/pru/cours inconnus) */
+const posValue = (p) => (p.value != null ? p.value : p.shares * p.last);
+const posGain = (p) => {
+  if (p.value != null) {
+    const cost = p.cost != null ? p.cost : p.value / (1 + (p.gainPct || 0) / 100);
+    return p.value - cost;
+  }
+  return p.shares * (p.last - p.pru);
+};
+const posGainPct = (p) => {
+  if (p.value != null) return p.gainPct || 0;
+  return p.pru ? ((p.last - p.pru) / p.pru) * 100 : 0;
+};
+
 /* ---------- number pop-in ---------- */
 function setDigits(group, str) {
   group.classList.remove("is-animating");
@@ -148,13 +164,13 @@ function doughnut(canvasId, labels, data) {
 function renderAlloc() {
   destroy("alloc");
   const pos = DATA.positions.filter(accFilter);
-  charts.alloc = doughnut("allocChart", pos.map((p) => p.ticker), pos.map((p) => p.shares * p.last));
+  charts.alloc = doughnut("allocChart", pos.map((p) => p.ticker), pos.map(posValue));
 }
 
 function renderCountry() {
   destroy("country");
   const byZone = {};
-  DATA.positions.filter(accFilter).forEach((p) => { const z = zoneOf(p); byZone[z] = (byZone[z] || 0) + p.shares * p.last; });
+  DATA.positions.filter(accFilter).forEach((p) => { const z = zoneOf(p); byZone[z] = (byZone[z] || 0) + posValue(p); });
   const entries = Object.entries(byZone).sort((a, b) => b[1] - a[1]);
   charts.country = doughnut("countryChart", entries.map((e) => e[0]), entries.map((e) => e[1]));
 }
@@ -164,22 +180,25 @@ function renderTable() {
   tbody.innerHTML = "";
   const accLabel = Object.fromEntries(DATA.accounts.map((a) => [a.id, a.label]));
   DATA.positions.filter(accFilter)
-    .map((p) => ({ ...p, value: p.shares * p.last, gain: p.shares * (p.last - p.pru) }))
-    .sort((a, b) => b.value - a.value)
+    .map((p) => ({ ...p, _val: posValue(p), _gain: posGain(p), _pct: posGainPct(p) }))
+    .sort((a, b) => b._val - a._val)
     .forEach((p) => {
-      const pct = p.pru ? ((p.last - p.pru) / p.pru) * 100 : 0;
-      const cls = p.gain >= 0 ? "pos" : "neg";
+      const cls = p._gain >= 0 ? "pos" : "neg";
+      const dash = '<span class="muted">—</span>';
+      const qty = p.shares != null ? (+p.shares).toLocaleString("fr-FR", { maximumFractionDigits: 4 }) : dash;
+      const pru = p.pru != null ? EUR2.format(p.pru) : dash;
+      const last = p.last != null ? EUR2.format(p.last) : dash;
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><strong>${p.ticker}</strong></td>
         <td>${p.label}</td>
         <td><span class="badge ${p.account}">${accLabel[p.account] || p.account}</span></td>
         <td>${zoneOf(p)}</td>
-        <td class="num">${(+p.shares).toLocaleString("fr-FR", { maximumFractionDigits: 4 })}</td>
-        <td class="num">${EUR2.format(p.pru)}</td>
-        <td class="num">${EUR2.format(p.last)}</td>
-        <td class="num">${EUR.format(p.value)}</td>
-        <td class="num ${cls}">${p.gain >= 0 ? "+" : ""}${EUR.format(p.gain)} (${PCT(pct)})</td>`;
+        <td class="num">${qty}</td>
+        <td class="num">${pru}</td>
+        <td class="num">${last}</td>
+        <td class="num">${EUR.format(p._val)}</td>
+        <td class="num ${cls}">${p._gain >= 0 ? "+" : ""}${EUR.format(p._gain)} (${PCT(p._pct)})</td>`;
       tbody.appendChild(tr);
     });
 }
