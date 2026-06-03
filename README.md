@@ -1,8 +1,6 @@
 <div align="center">
 
-# 💸 money.luku.fr
-
-### Deviens riche comme Luku.
+<img src="docs/banner.png" width="100%" alt="money.luku.fr — Deviens riche comme Luku" />
 
 **Dashboard d'investissement boursier perso (PEA + CTO)** — auto-hébergé, *read-only*, 4 thèmes, et carrément trop stylé.
 
@@ -12,7 +10,7 @@
 [![Themes](https://img.shields.io/badge/thèmes-4-39ff14?style=for-the-badge)](#-4-thèmes)
 [![No tracking](https://img.shields.io/badge/tracking-0-success?style=for-the-badge)](#-vie-privée)
 
-<img src="docs/screens/theme-pur.png" width="80%" alt="Aperçu du dashboard" />
+<img src="docs/themes.gif" width="85%" alt="Les 4 thèmes en action" />
 
 </div>
 
