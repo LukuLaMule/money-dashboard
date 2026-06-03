@@ -1,64 +1,111 @@
-# money.luku.fr — Dashboard boursier PEA / CTO (read-only)
+<div align="center">
 
-Site statique servi par nginx derrière Traefik (réseau `web`, SSL Let's Encrypt auto).
-Tout le dashboard est piloté par un seul fichier : **`html/data.json`**.
-Aucune écriture côté visiteur — 100 % read-only (nginx bloque tout sauf GET/HEAD).
+# 💸 money.luku.fr
 
-## Démarrer / mettre à jour
+### Deviens riche comme Luku.
+
+**Dashboard d'investissement boursier perso (PEA + CTO)** — auto-hébergé, *read-only*, 4 thèmes, et carrément trop stylé.
+
+[![Made with Chart.js](https://img.shields.io/badge/charts-Chart.js%204-ff6384?style=for-the-badge&logo=chart.js&logoColor=white)](https://www.chartjs.org/)
+[![Vanilla JS](https://img.shields.io/badge/JS-vanilla-f7df1e?style=for-the-badge&logo=javascript&logoColor=black)](#)
+[![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8?style=for-the-badge&logo=pwa&logoColor=white)](#)
+[![Themes](https://img.shields.io/badge/thèmes-4-39ff14?style=for-the-badge)](#-4-thèmes)
+[![No tracking](https://img.shields.io/badge/tracking-0-success?style=for-the-badge)](#-vie-privée)
+
+<img src="docs/screens/theme-pur.png" width="80%" alt="Aperçu du dashboard" />
+
+</div>
+
+---
+
+## ✨ C'est quoi ?
+
+Un tableau de bord façon **Finary**, mais **fait main et 100 % à moi** : il agrège mon **PEA** (Bourse Direct) et mon **CTO** (Trade Republic), trace ma performance réelle, mes dividendes, mon allocation, et projette mon patrimoine futur. Le tout en site **statique** (zéro base de données), servi par nginx derrière Traefik, et **rafraîchi tout seul** chaque jour.
+
+> ⚠️ Les **données affichées dans les captures sont fictives**. Mes vraies données financières ne sont **jamais** commitées (voir [Vie privée](#-vie-privée)).
+
+---
+
+## 🎨 4 thèmes
+
+Un sélecteur en haut de page, mémorisé entre les visites. Chaque thème change palette, polices **et** couleurs des graphiques.
+
+| ⚪ Pur — minimal façon Apple | 📈 Performance — terminal trading |
+|:---:|:---:|
+| ![Pur](docs/screens/theme-pur.png) | ![Performance](docs/screens/theme-performance.png) |
+| 💎 **Wealth — luxe or sur noir** | 🎮 **MLG — montage parody 2013** |
+| ![Wealth](docs/screens/theme-wealth.png) | ![MLG](docs/screens/theme-mlg.png) |
+
+---
+
+## 🚀 Fonctionnalités
+
+- 📊 **Courbe de performance** — valeur de marché vs apports investis, reconstruite mois par mois à partir des cours historiques.
+- 🎯 **KPIs** — valorisation, plus-value, dividendes encaissés, **perf des positions depuis l'achat** (avec tooltips explicatifs).
+- 🥧 **Allocation** par ligne + **répartition par pays** 🌍 et par **secteur** 🏷️ (barres animées).
+- 🤑 **Dividendes** — historique mensuel, **rendement annuel**, et **calendrier prévisionnel** des 12 prochains mois (filtré sur les lignes encore détenues).
+- 🔮 **Prévisionnel** — projection par scénarios à rendement réglable, **dividendes réinvestis** et **effet de levier pondéré** par la composition réelle, en euros constants en option.
+- 📈 **Comparaison vs indices** — « et si j'avais investi mes apports sur le **S&P 500 / CAC 40 / MSCI World** ? » (simulation DCA).
+- ⏱️ **Filtre temporel** 1M / 6M / 1A / 3A / Max, table de positions **triable**.
+- 📱 **PWA installable** + **responsive** mobile / tablette (iOS & Android).
+- 🔒 **Read-only** : nginx bloque toute méthode ≠ GET/HEAD.
+
+---
+
+## 🛠️ Stack
+
+| | |
+|---|---|
+| **Front** | HTML / CSS / **vanilla JS**, [Chart.js 4](https://www.chartjs.org/), animations [transitions.dev](https://transitions.dev) (number pop-in, tabs, tooltip, dropdown…) |
+| **Serveur** | nginx statique derrière **Traefik** (SSL Let's Encrypt auto) |
+| **Données** | scripts **Python** (stdlib) — aucun framework, aucune DB |
+| **Cours** | Yahoo Finance (cours actuels + historique, conversion FX) |
+| **Auto** | `cron` : news chaque heure, cours + portefeuilles + reconstruction chaque jour |
+
+---
+
+## 🔌 Sources de données
+
+| Compte | Source | Récupération |
+|---|---|---|
+| **PEA** | Bourse Direct — avis d'opéré CSV | positions, PRU (coût moyen), dividendes, apports |
+| **CTO** | Trade Republic — API WebSocket `compactPortfolioByTypeV2` | positions, parts & PRU exacts, dividendes, apports |
+
+Tout est converti en un seul fichier **`data.json`** qui pilote le dashboard.
+
+---
+
+## 🏃 Lancer en local
 
 ```bash
-cd /home/opc/Docker/sites/money
-docker compose up -d        # démarre (ou recrée) le conteneur
-# après modif de data.json : rien à rebuild, c'est servi en live (no-cache)
+git clone https://github.com/LukuLaMule/money-dashboard.git
+cd money-dashboard
+cp html/data.example.json html/data.json   # remplis-le, ou génère-le via tools/
+docker compose up -d                         # → http://localhost
 ```
 
-## Format de `data.json`
+Le dashboard lit `html/data.json`. Le format est documenté dans `html/data.example.json`.
 
-```jsonc
-{
-  "currency": "EUR",
-  "owner": "LUKU",
-  "lastUpdate": "2026-06-01",        // date affichée en bas
+---
 
-  "accounts": [                       // tes enveloppes
-    { "id": "pea", "label": "PEA", "broker": "Bourse Direct", "color": "#39ff14" },
-    { "id": "cto", "label": "CTO", "broker": "Trade Republic", "color": "#00e5ff" }
-  ],
+## 🔒 Vie privée
 
-  // 1 ligne = la photo d'un compte à une date donnée (idéalement 1x/mois)
-  // value = valeur de marché totale du compte ce jour-là
-  // invested = total des apports nets (ce que t'as mis de ta poche)
-  "snapshots": [
-    { "date": "2025-01-01", "account": "pea", "value": 10250, "invested": 10000 }
-  ],
+Ce dépôt est **public mais ne contient aucune donnée financière réelle**. Sont **gitignorés** :
+`html/data.json`, `tools/prices.json`, `tools/price_history.json`, `tools/cto_positions.json`, `tools/sources/`…
+Seuls le **code** et des **exemples anonymisés** sont publiés. Les captures ci-dessus utilisent un jeu de données **fictif**.
 
-  // chaque dividende encaissé
-  "dividends": [
-    { "date": "2025-03-12", "account": "cto", "ticker": "TTE", "label": "TotalEnergies", "amount": 38.40 }
-  ],
+---
 
-  // tes positions actuelles (calcul auto valeur & +/- value)
-  // pru = prix de revient unitaire ; last = cours actuel
-  "positions": [
-    { "account": "pea", "ticker": "CW8", "label": "Amundi MSCI World", "shares": 22, "pru": 405.10, "last": 512.40 }
-  ]
-}
-```
+## 📜 Disclaimer
 
-### Ce dont j'ai besoin de ta part pour brancher tes vrais chiffres
-- **Snapshots** : pour chaque compte, l'historique `date / value / invested`. Un point par mois suffit (export courbe de ton courtier, ou relevés). Plus t'en donnes, plus la courbe de performance est belle.
-- **Dividendes** : la liste `date / compte / ticker / montant`.
-- **Positions actuelles** : `compte / ticker / nom / quantité / PRU / cours actuel`.
+Projet **personnel**, à but d'apprentissage. **Aucun conseil en investissement.** Les performances passées ne préjugent pas des performances futures.
 
-Format libre au départ (CSV, copier-coller, capture lisible, export Finary/courtier) — je convertis en `data.json`.
+---
 
-## Stack
-- nginx (statique) + Chart.js 4 (CDN) — aucune base de données.
-- Animations : skill **transitions.dev** (number pop-in, tabs sliding, shimmer).
-- Thème : MLG montage parody (hitmarkers, airhorn WebAudio, pluie Doritos/Mountain Dew).
+<div align="center">
 
-## Données (repo public)
-Les fichiers de données réelles sont **gitignorés** (non publiés) : `html/data.json`,
-`tools/prices.json`, `tools/price_history.json`, `tools/cto_positions.json`, `tools/sources/`…
-Pour faire tourner le dashboard : `cp html/data.example.json html/data.json` puis remplis-le
-(ou génère-le via les scripts `tools/`). Voir `tools/cto_positions.example.json` pour le CTO.
+Fait avec 🔥 par **Luku** — [GitHub](https://github.com/LukuLaMule) · [Instagram](https://instagram.com/luku_la_mule)
+
+⭐ *Si ça te plaît, lâche une étoile !*
+
+</div>
