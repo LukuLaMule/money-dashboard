@@ -525,7 +525,7 @@ function applyThemeTagline(name) {
   if (el) el.textContent = THEME_TAGLINE[name] || THEME_TAGLINE.mlg;
 }
 function setTheme(name) {
-  if (!THEME_LABELS[name]) name = "mlg";
+  if (!THEME_LABELS[name]) name = "pur";
   document.documentElement.dataset.theme = name;
   try { localStorage.setItem("money-theme", name); } catch (e) {}
   const cur = document.getElementById("theme-current");
@@ -547,9 +547,9 @@ function wireTheme() {
   document.addEventListener("click", (e) => { if (open && !menu.contains(e.target) && e.target !== btn) closeMenu(); });
   menu.querySelectorAll(".theme-opt").forEach((o) => o.addEventListener("click", () => { setTheme(o.dataset.theme); closeMenu(); }));
   // applique le thème sauvegardé (sans re-render, DATA pas encore prête)
-  let saved = "mlg";
-  try { saved = localStorage.getItem("money-theme") || "mlg"; } catch (e) {}
-  document.documentElement.dataset.theme = THEME_LABELS[saved] ? saved : "mlg";
+  let saved = "pur";
+  try { saved = localStorage.getItem("money-theme") || "pur"; } catch (e) {}
+  document.documentElement.dataset.theme = THEME_LABELS[saved] ? saved : "pur";
   if (document.getElementById("theme-current")) document.getElementById("theme-current").textContent = THEME_LABELS[document.documentElement.dataset.theme];
   applyThemeSub(document.documentElement.dataset.theme);
   document.querySelectorAll(".theme-opt").forEach((o) => o.setAttribute("aria-current", o.dataset.theme === document.documentElement.dataset.theme ? "true" : "false"));
