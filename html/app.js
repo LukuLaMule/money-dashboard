@@ -170,9 +170,12 @@ function renderPerf() {
   const p = palette(); Chart.defaults.color = p.tick;
   const labels = monthsSorted().filter(inRange).map((d) => d.slice(0, 7));
   const valSeries = seriesFor("value");
+  const invSeries = seriesFor("invested");
+  const lastIdx = valSeries.reduce((acc, v, i) => (v != null ? i : acc), -1);
+  const lastDot = (color) => ({ pointRadius: (ctx) => (ctx.dataIndex === lastIdx ? 5 : 0), pointBackgroundColor: color, pointBorderColor: color, pointHoverRadius: 6 });
   const datasets = [
-    { label: "Valorisation", data: valSeries, borderColor: p.neon, backgroundColor: withAlpha(p.neon, "20"), fill: true, tension: .35, borderWidth: 3, pointRadius: 0, pointHoverRadius: 5, spanGaps: true },
-    { label: "Investi", data: seriesFor("invested"), borderColor: p.gold, borderDash: [6, 5], fill: false, tension: .25, borderWidth: 2, pointRadius: 0, spanGaps: true },
+    { label: "Valorisation", data: valSeries, borderColor: p.neon, backgroundColor: withAlpha(p.neon, "20"), fill: true, tension: .35, borderWidth: 3, spanGaps: true, ...lastDot(p.neon) },
+    { label: "Investi", data: invSeries, borderColor: p.gold, borderDash: [6, 5], fill: false, tension: .25, borderWidth: 2, spanGaps: true, ...lastDot(p.gold) },
   ];
   // overlay indice rebasé sur la 1ère valeur visible du portefeuille
   if (currentBench && BENCH[currentBench]) {
@@ -191,6 +194,15 @@ function renderPerf() {
       plugins: { legend: { labels: { boxWidth: 14 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y == null ? "—" : EUR.format(c.parsed.y)}` } } },
       scales: { x: { grid: { color: p.grid } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
   });
+  // légende chiffrée : valeur actuelle vs investi
+  const cap = document.getElementById("perf-cap");
+  if (cap) {
+    const lv = lastIdx >= 0 ? valSeries[lastIdx] : null, li = lastIdx >= 0 ? invSeries[lastIdx] : null;
+    if (lv != null && li != null) {
+      const g = lv - li, gp = li ? (g / li) * 100 : 0;
+      cap.innerHTML = `📍 Aujourd'hui — <b style="color:var(--neon)">${EUR.format(lv)}</b> valorisation · <b style="color:var(--gold)">${EUR.format(li)}</b> investi · <span class="${g >= 0 ? "pos" : "neg"}">${g >= 0 ? "+" : ""}${EUR.format(g)} (${PCT(gp)})</span>`;
+    } else cap.textContent = "";
+  }
 }
 
 function renderDiv() {
