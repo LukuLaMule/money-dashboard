@@ -303,25 +303,31 @@ function renderForecast() {
   const p = palette(); Chart.defaults.color = p.tick;
   const k = computeKpis();
   const v0 = k.value || k.invested || 0;
-  const monthlyEl = document.getElementById("forecast-monthly");
-  const C = monthlyEl ? Math.max(0, +monthlyEl.value || 0) : 150; // apport mensuel choisi (défaut 150 €)
+  const val = (id, def) => { const el = document.getElementById(id); return el ? (+el.value || 0) : def; };
+  const C = Math.max(0, val("forecast-monthly", 150));
+  const rate = Math.max(0, val("forecast-rate", 7));
+  const rv = document.getElementById("forecast-rate-val"); if (rv) rv.textContent = rate + " %";
+  const infl = !!(document.getElementById("forecast-infl") && document.getElementById("forecast-infl").checked);
+  const goal = Math.max(0, val("forecast-goal", 0));
   const H = forecastYears;
   const year0 = new Date().getFullYear();
   const labels = Array.from({ length: H + 1 }, (_, y) => String(year0 + y));
-  const scen = [
-    { name: "Pessimiste · 3 %/an", r: 0.03, color: p.red },
-    { name: "Neutre · 7 %/an", r: 0.07, color: p.cyan },
-    { name: "Optimiste · 11 %/an", r: 0.11, color: p.neon },
+  const defl = (y) => (infl ? Math.pow(1.02, y) : 1); // euros constants (inflation 2 %)
+  const rates = [
+    { name: `Pessimiste · ${Math.max(0, rate - 4)} %/an`, r: Math.max(0, rate - 4) / 100, color: p.red },
+    { name: `Attendu · ${rate} %/an`, r: rate / 100, color: p.cyan },
+    { name: `Optimiste · ${rate + 4} %/an`, r: (rate + 4) / 100, color: p.neon },
   ];
-  const datasets = scen.map((s) => {
+  let neutral = [];
+  const datasets = rates.map((s, si) => {
     const rm = Math.pow(1 + s.r, 1 / 12) - 1;
-    let v = v0; const pts = [Math.round(v)];
-    for (let y = 1; y <= H; y++) { for (let m = 0; m < 12; m++) v = v * (1 + rm) + C; pts.push(Math.round(v)); }
+    let v = v0; const pts = [Math.round(v / defl(0))];
+    for (let y = 1; y <= H; y++) { for (let m = 0; m < 12; m++) v = v * (1 + rm) + C; pts.push(Math.round(v / defl(y))); }
+    if (si === 1) neutral = pts;
     return { label: s.name, data: pts, borderColor: s.color, backgroundColor: "transparent", fill: false, tension: .3, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4 };
   });
-  // capital investi cumulé (apports projetés, sans rendement)
   datasets.push({
-    label: "Capital investi", data: labels.map((_, y) => Math.round(k.invested + C * 12 * y)),
+    label: "Capital investi", data: labels.map((_, y) => Math.round((k.invested + C * 12 * y) / defl(y))),
     borderColor: p.gold, borderDash: [6, 5], borderWidth: 2, pointRadius: 0, fill: false,
   });
   charts.forecast = new Chart(document.getElementById("forecastChart"), {
@@ -330,8 +336,15 @@ function renderForecast() {
       plugins: { legend: { labels: { boxWidth: 14 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${EUR.format(c.parsed.y)}` } } },
       scales: { x: { grid: { color: p.grid } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
   });
+  let goalTxt = "";
+  if (goal > 0) {
+    const idx = neutral.findIndex((v) => v >= goal);
+    goalTxt = idx >= 0
+      ? ` 🎯 Objectif ${EUR.format(goal)} atteint vers ${year0 + idx} (scénario attendu).`
+      : ` 🎯 Objectif ${EUR.format(goal)} non atteint en ${H} ans (scénario attendu).`;
+  }
   const note = document.getElementById("forecast-note");
-  if (note) note.textContent = `Base : ${EUR.format(v0)} aujourd'hui + ${EUR.format(C)}/mois d'apports sur ${H} ans. Hypothèses de rendement annuel, hors inflation. Projection non contractuelle.`;
+  if (note) note.textContent = `Base ${EUR.format(v0)} + ${EUR.format(C)}/mois sur ${H} ans${infl ? " · euros constants (infl. 2 %)" : ""}. Projection non contractuelle.${goalTxt}`;
 }
 
 function renderAll() {
@@ -473,8 +486,11 @@ async function boot() {
   wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });
   wireTabBar("#range-tabs", (tab) => { currentRange = +tab.dataset.range; });
   wireTabBar("#forecast-tabs", (tab) => { forecastYears = +tab.dataset.years; });
-  const fm = document.getElementById("forecast-monthly");
-  if (fm) fm.addEventListener("input", () => { if (DATA) renderForecast(); });
+  ["forecast-monthly", "forecast-rate", "forecast-goal", "forecast-infl"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", () => { if (DATA) renderForecast(); });
+    if (el && el.type === "checkbox") el.addEventListener("change", () => { if (DATA) renderForecast(); });
+  });
   wireMlg();
   renderAll();
   renderNews();
