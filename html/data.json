@@ -15,187 +15,187 @@
       "date": "2023-12-01",
       "account": "pea",
       "invested": 1180.0,
-      "value": null
+      "value": 1133.55
     },
     {
       "date": "2024-01-01",
       "account": "pea",
       "invested": 1530.0,
-      "value": null
+      "value": 1564.89
     },
     {
       "date": "2024-02-01",
       "account": "pea",
       "invested": 2330.0,
-      "value": null
+      "value": 2481.87
     },
     {
       "date": "2024-03-01",
       "account": "pea",
       "invested": 2330.0,
-      "value": null
+      "value": 2401.98
     },
     {
       "date": "2024-04-01",
       "account": "pea",
       "invested": 2530.0,
-      "value": null
+      "value": 2617.03
     },
     {
       "date": "2024-05-01",
       "account": "pea",
       "invested": 2700.0,
-      "value": null
+      "value": 2637.2
     },
     {
       "date": "2024-06-01",
       "account": "pea",
       "invested": 2950.0,
-      "value": null
+      "value": 3022.76
     },
     {
       "date": "2024-07-01",
       "account": "pea",
       "invested": 2950.0,
-      "value": null
+      "value": 3047.07
     },
     {
       "date": "2024-08-01",
       "account": "pea",
       "invested": 3200.0,
-      "value": null
+      "value": 3276.95
     },
     {
       "date": "2024-09-01",
       "account": "pea",
       "invested": 3500.0,
-      "value": null
+      "value": 3495.87
     },
     {
       "date": "2024-10-01",
       "account": "pea",
       "invested": 3750.0,
-      "value": null
+      "value": 3774.24
     },
     {
       "date": "2024-11-01",
       "account": "pea",
       "invested": 3750.0,
-      "value": null
+      "value": 3824.52
     },
     {
       "date": "2024-12-01",
       "account": "pea",
       "invested": 3950.0,
-      "value": null
+      "value": 4186.39
     },
     {
       "date": "2025-01-01",
       "account": "pea",
       "invested": 3950.0,
-      "value": null
+      "value": 4147.12
     },
     {
       "date": "2025-02-01",
       "account": "pea",
       "invested": 3950.0,
-      "value": null
+      "value": 3923.85
     },
     {
       "date": "2025-03-01",
       "account": "pea",
       "invested": 4253.0,
-      "value": null
+      "value": 4076.58
     },
     {
       "date": "2025-04-01",
       "account": "pea",
       "invested": 4753.0,
-      "value": null
+      "value": 4786.73
     },
     {
       "date": "2025-05-01",
       "account": "pea",
       "invested": 4753.0,
-      "value": null
+      "value": 4707.14
     },
     {
       "date": "2025-06-01",
       "account": "pea",
       "invested": 4753.0,
-      "value": null
+      "value": 4867.96
     },
     {
       "date": "2025-07-01",
       "account": "pea",
       "invested": 5353.0,
-      "value": null
+      "value": 5455.51
     },
     {
       "date": "2025-08-01",
       "account": "pea",
       "invested": 5353.0,
-      "value": null
+      "value": 5651.74
     },
     {
       "date": "2025-09-01",
       "account": "pea",
       "invested": 5528.0,
-      "value": null
+      "value": 5957.02
     },
     {
       "date": "2025-10-01",
       "account": "pea",
       "invested": 5528.0,
-      "value": null
+      "value": 5867.01
     },
     {
       "date": "2025-11-01",
       "account": "pea",
       "invested": 5528.0,
-      "value": null
+      "value": 5828.63
     },
     {
       "date": "2025-12-01",
       "account": "pea",
       "invested": 5528.0,
-      "value": null
+      "value": 5828.78
     },
     {
       "date": "2026-01-01",
       "account": "pea",
       "invested": 5548.0,
-      "value": null
+      "value": 5998.4
     },
     {
       "date": "2026-02-01",
       "account": "pea",
       "invested": 5548.0,
-      "value": null
+      "value": 5731.65
     },
     {
       "date": "2026-03-01",
       "account": "pea",
       "invested": 5548.0,
-      "value": null
+      "value": 6126.07
     },
     {
       "date": "2026-04-01",
       "account": "pea",
       "invested": 5748.0,
-      "value": null
+      "value": 6558.73
     },
     {
       "date": "2026-05-01",
       "account": "pea",
       "invested": 5898.0,
-      "value": null
+      "value": 6740.66
     },
     {
       "date": "2026-06-01",
       "account": "pea",
       "invested": 5898.0,
-      "value": 5787.85
+      "value": 6764.52
     }
   ],
   "dividends": [
@@ -411,7 +411,7 @@
       "isin": "FR0013412285",
       "shares": 42.0,
       "pru": 43.3705,
-      "last": 43.3705
+      "last": 53.61
     },
     {
       "account": "pea",
@@ -420,25 +420,7 @@
       "isin": "FR0000120073",
       "shares": 6.0,
       "pru": 171.16,
-      "last": 171.16
-    },
-    {
-      "account": "pea",
-      "ticker": "THALES",
-      "label": "THALES",
-      "isin": "FR0000121329",
-      "shares": 3.0,
-      "pru": 237.9233,
-      "last": 237.9233
-    },
-    {
-      "account": "pea",
-      "ticker": "AMUNDM",
-      "label": "AMUND.MSCI WORLD D",
-      "isin": "LU2655993207",
-      "shares": 18.0,
-      "pru": 33.8439,
-      "last": 33.8439
+      "last": 180.04
     },
     {
       "account": "pea",
@@ -447,7 +429,25 @@
       "isin": "FR0010755611",
       "shares": 28.0,
       "pru": 21.5814,
-      "last": 21.5814
+      "last": 30.84
+    },
+    {
+      "account": "pea",
+      "ticker": "AMUNDM",
+      "label": "AMUND.MSCI WORLD D",
+      "isin": "LU2655993207",
+      "shares": 18.0,
+      "pru": 33.8439,
+      "last": 40.14
+    },
+    {
+      "account": "pea",
+      "ticker": "THALES",
+      "label": "THALES",
+      "isin": "FR0000121329",
+      "shares": 3.0,
+      "pru": 237.9233,
+      "last": 225.7
     },
     {
       "account": "pea",
@@ -456,16 +456,7 @@
       "isin": "NL0000235190",
       "shares": 2.0,
       "pru": 139.875,
-      "last": 139.875
-    },
-    {
-      "account": "pea",
-      "ticker": "SANOFI",
-      "label": "SANOFI",
-      "isin": "FR0000120578",
-      "shares": 3.0,
-      "pru": 89.4267,
-      "last": 89.4267
+      "last": 169.66
     },
     {
       "account": "pea",
@@ -474,7 +465,16 @@
       "isin": "FR0000120628",
       "shares": 8.0,
       "pru": 33.3513,
-      "last": 33.3513
+      "last": 39.25
+    },
+    {
+      "account": "pea",
+      "ticker": "SANOFI",
+      "label": "SANOFI",
+      "isin": "FR0000120578",
+      "shares": 3.0,
+      "pru": 89.4267,
+      "last": 73.16
     },
     {
       "account": "pea",
@@ -483,7 +483,7 @@
       "isin": "FR0013411980",
       "shares": 4.0,
       "pru": 26.775,
-      "last": 26.775
+      "last": 37.38
     },
     {
       "account": "pea",
@@ -492,7 +492,7 @@
       "isin": "FR0013412020",
       "shares": 3.0,
       "pru": 30.05,
-      "last": 30.05
+      "last": 37.206
     }
   ]
 }
