@@ -29,6 +29,11 @@ docker compose up -d        # démarre / recrée
   rotés après chaque resume (`tr.save_websession()`) — sans ça, 2FA requise en quelques heures.
   Si « session TR expirée » dans refresh.log → `/home/opc/tr_scraper/cto_relogin.sh` (2FA une fois).
 - KPI « Aujourd'hui » : affiché en centimes (EUR2) quand |PnL| < 10 €, sinon arrondi à l'euro.
+- **Titres US du CTO cotés sur les places allemandes** (Stuttgart/Francfort, EUR natif, 8h-22h Paris)
+  via `SYMBOL_OVERRIDES` dans `fetch_prices.py` — sinon la variation du jour resterait figée sur la
+  clôture US de la veille jusqu'à 15h30 Paris (TR cote via LS Exchange en continu). Nouvelle position
+  US dans le CTO → ajouter son ticker allemand dans SYMBOL_OVERRIDES (sinon fallback NYSE/NASDAQ, correct
+  mais retardé hors séance US).
 
 ## Fichiers
 - `html/index.html` — structure (KPIs, tabs compte, 3 charts, table positions).

@@ -30,8 +30,19 @@ CTX.verify_mode = ssl.CERT_NONE
 HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
 
 # Surcharges manuelles ISIN -> symbole Yahoo (si la résolution auto se trompe).
+# Titres US du CTO : on cote sur les places allemandes (Stuttgart/Francfort, EUR natif,
+# ouvertes 8h-22h Paris) au lieu du NYSE/NASDAQ — sinon la « variation du jour » reste
+# figée sur la clôture US de la veille jusqu'à 15h30 Paris, alors que TR (LS Exchange)
+# cote en continu. Bonus : plus de conversion FX.
 SYMBOL_OVERRIDES = {
     "XF000BTC0017": "BTC-EUR",   # Bitcoin (TR)
+    "US0420682058": "O9T.F",     # ARM Holdings ADR (Francfort)
+    "US0079031078": "AMD.SG",    # AMD (Stuttgart)
+    "US5949181045": "MSF.SG",    # Microsoft (Stuttgart)
+    "US0937121079": "1ZB.SG",    # Bloom Energy (Stuttgart)
+    "US36467W1099": "GS2C.F",    # GameStop (Francfort)
+    "US5949724083": "MIGA.SG",   # MicroStrategy / Strategy Inc (Stuttgart)
+    # US0846701086 Berkshire A → déjà résolu BRH.SG (Stuttgart) via le cache
 }
 
 
