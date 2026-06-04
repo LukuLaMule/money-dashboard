@@ -24,7 +24,10 @@ docker compose up -d        # démarre / recrée
   (range 5d, pas d'historique/news/fetch TR), reconstruit data.json. ~10 s par run.
   → le KPI « Aujourd'hui » suit le marché au lieu de rester figé sur les cours de 9h30.
 - `refresh.sh full`   : 7h30 GMT — cours + historique 5y + benchmarks + portefeuille TR.
-- `refresh_cto.sh`    : toutes les 4 h à :23 — CTO Trade Republic.
+- `refresh_cto.sh`    : **toutes les 30 min (:08/:38)** — CTO Trade Republic + keep-alive session.
+  La session web TR survit indéfiniment car `fetch_tr_portfolio.py` re-sauvegarde les cookies
+  rotés après chaque resume (`tr.save_websession()`) — sans ça, 2FA requise en quelques heures.
+  Si « session TR expirée » dans refresh.log → `/home/opc/tr_scraper/cto_relogin.sh` (2FA une fois).
 - KPI « Aujourd'hui » : affiché en centimes (EUR2) quand |PnL| < 10 €, sinon arrondi à l'euro.
 
 ## Fichiers
