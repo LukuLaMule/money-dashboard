@@ -24,9 +24,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CTX = ssl.create_default_context()
-CTX.check_hostname = False
-CTX.verify_mode = ssl.CERT_NONE
+CTX = ssl.create_default_context()  # vérification TLS activée
 HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
 
 # Surcharges manuelles ISIN -> symbole Yahoo (si la résolution auto se trompe).
@@ -46,10 +44,16 @@ SYMBOL_OVERRIDES = {
 }
 
 
-def get_json(url):
+def get_json(url, retries=2):
     req = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(req, timeout=20, context=CTX) as r:
-        return json.load(r)
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=20, context=CTX) as r:
+                return json.load(r)
+        except Exception:
+            if attempt == retries:
+                raise
+            time.sleep(1.5 * (attempt + 1))  # backoff : 1.5 s puis 3 s
 
 
 def resolve_symbol(isin, cache):

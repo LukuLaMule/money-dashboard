@@ -25,6 +25,7 @@ let charts = {};
 let INTRADAY = null; // intraday.json — points de la séance (~10 min)
 let DAILY = null;    // daily.json — historique journalier des valos
 let RECAP = null;    // recap.json — récap du mois écoulé
+let HISTORY = null;  // history.json — cours mensuels par ISIN (fiche position)
 
 /* ---------- pays / zone par ISIN ---------- */
 const ZONE_BY_ISIN = {
@@ -393,8 +394,67 @@ function renderTable() {
         <td class="num ${p._day == null ? "" : p._day >= 0 ? "pos" : "neg"}">${p._day == null ? dash : `${p._day >= 0 ? "+" : ""}${EUR2.format(p._day)} (${PCT(p._dayPct)})`}</td>
         <td class="num">${EUR.format(p._val)}</td>
         <td class="num ${cls}">${p._gain >= 0 ? "+" : ""}${EUR.format(p._gain)} (${PCT(p._pct)})</td>`;
+      tr.addEventListener("click", () => openPosModal(p));
       tbody.appendChild(tr);
     });
+}
+
+/* ---------- fiche détail par position (modal) ---------- */
+function closePosModal() {
+  const m = document.getElementById("pos-modal");
+  if (m) { m.hidden = true; destroy("pos"); }
+}
+function openPosModal(p) {
+  const m = document.getElementById("pos-modal");
+  if (!m) return;
+  const accLabel = Object.fromEntries(DATA.accounts.map((a) => [a.id, a.label]));
+  document.getElementById("pos-title").innerHTML =
+    `<strong>${p.ticker}</strong> · ${p.label} <span class="badge ${p.account}">${accLabel[p.account] || p.account}</span> <span class="muted">${zoneOf(p)}</span>`;
+  // stats
+  const total = DATA.positions.filter(accFilter).reduce((a, q) => a + posValue(q), 0) || 1;
+  const divsLine = DATA.dividends.filter((d) => (p.isin && d.isin ? d.isin === p.isin : d.ticker === p.ticker));
+  const divSum = divsLine.reduce((a, d) => a + d.amount, 0);
+  const stat = (label, value, cls2) => `<div class="pos-stat"><span class="p-label">${label}</span><span class="p-value ${cls2 || ""}">${value}</span></div>`;
+  const dash = "—";
+  const dayPnl = p._day, dayPct = p._dayPct;
+  document.getElementById("pos-stats").innerHTML =
+    stat("COURS", p.last != null ? EUR2.format(p.last) : dash) +
+    stat("PRU", p.pru != null ? EUR2.format(p.pru) : dash) +
+    stat("QUANTITÉ", p.shares != null ? (+p.shares).toLocaleString("fr-FR", { maximumFractionDigits: 4 }) : dash) +
+    stat("VALEUR", EUR.format(p._val)) +
+    stat("POIDS", `${((p._val / total) * 100).toFixed(1)} %`) +
+    stat("+/- VALUE", `${p._gain >= 0 ? "+" : ""}${EUR.format(p._gain)} (${PCT(p._pct)})`, p._gain >= 0 ? "pos" : "neg") +
+    stat("AUJOURD'HUI", dayPnl != null ? `${dayPnl >= 0 ? "+" : ""}${EUR2.format(dayPnl)} (${PCT(dayPct)})` : dash, dayPnl != null ? (dayPnl >= 0 ? "pos" : "neg") : "") +
+    stat("DIVIDENDES REÇUS", divSum ? `${EUR2.format(divSum)} (${divsLine.length}×)` : "0 €");
+  // courbe mensuelle du cours + ligne PRU
+  destroy("pos");
+  const series = (HISTORY && p.isin && HISTORY[p.isin]) || null;
+  const note = document.getElementById("pos-note");
+  if (series && Object.keys(series).length > 1) {
+    const pal = palette();
+    const months = Object.keys(series).sort();
+    charts.pos = new Chart(document.getElementById("posChart"), {
+      type: "line",
+      data: { labels: months.map((x) => x.slice(0, 7)), datasets: [
+        { label: "Cours", data: months.map((x) => series[x]), borderColor: pal.neon, backgroundColor: withAlpha(pal.neon, "18"), fill: true, tension: .3, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4 },
+        ...(p.pru != null ? [{ label: "PRU", data: months.map(() => p.pru), borderColor: pal.gold, borderDash: [6, 5], borderWidth: 1.5, pointRadius: 0, fill: false }] : []),
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+        plugins: { legend: { labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${EUR2.format(c.parsed.y)}` } } },
+        scales: { x: { grid: { color: pal.grid }, ticks: { maxTicksLimit: 8 } }, y: { grid: { color: pal.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
+    });
+    note.textContent = "Clôtures mensuelles (Yahoo). La ligne or = ton prix de revient.";
+  } else {
+    note.textContent = "Pas d'historique de cours disponible pour cette ligne.";
+  }
+  m.hidden = false;
+}
+function wirePosModal() {
+  const m = document.getElementById("pos-modal");
+  if (!m) return;
+  m.querySelector(".pos-backdrop").addEventListener("click", closePosModal);
+  m.querySelector(".pos-close").addEventListener("click", closePosModal);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePosModal(); });
 }
 
 /* dividendes à venir : projection des 12 derniers mois sur l'année suivante,
@@ -553,17 +613,75 @@ function renderRecap() {
   const cls = (v) => (v >= 0 ? "pos" : "neg");
   const item = (label, value, sub) => `<div class="recap-item"><span class="r-label">${label}</span><span class="r-value">${value}</span>${sub ? `<span class="r-sub">${sub}</span>` : ""}</div>`;
   const lines = (arr) => (arr || []).map((x) => `<span class="${cls(x.pct)}">${x.t} ${sgn(x.pct)}${x.pct.toFixed(1)} %</span>`).join(" · ") || "—";
+  // comparatif des 6 derniers mois : mini barres centrées sur zéro
+  let monthsHtml = "";
+  if (RECAP.months && RECAP.months.length > 1) {
+    const maxAbs = Math.max(...RECAP.months.map((m) => Math.abs(m.pct)), 0.1);
+    monthsHtml = `<div class="recap-item recap-months"><span class="r-label">6 DERNIERS MOIS (hors apports)</span><div class="rm-bars">` +
+      RECAP.months.map((m) => {
+        const h = Math.round((Math.abs(m.pct) / maxAbs) * 34);
+        return `<div class="rm-col" title="${m.label} : ${sgn(m.pct)}${m.pct.toFixed(2)} %">
+          <span class="rm-pct ${cls(m.pct)}">${sgn(m.pct)}${m.pct.toFixed(1)}</span>
+          <span class="rm-track"><span class="rm-bar ${cls(m.pct)}" style="height:${Math.max(2, h)}px"></span></span>
+          <span class="rm-month">${m.label}</span></div>`;
+      }).join("") + `</div></div>`;
+  }
   box.innerHTML =
     item("PERF DU MOIS (hors apports)", `<span class="${cls(RECAP.gain)}">${sgn(RECAP.gain)}${EUR.format(RECAP.gain)} (${sgn(RECAP.gain_pct)}${RECAP.gain_pct.toFixed(1)} %)</span>`,
       `${EUR.format(RECAP.start_value)} → ${EUR.format(RECAP.end_value)}${RECAP.contrib ? ` · apports ${EUR.format(RECAP.contrib)}` : ""}`) +
     item("DIVIDENDES ENCAISSÉS", EUR2.format(RECAP.dividends || 0), "") +
     item("TOP DU MOIS", lines(RECAP.top), "") +
-    item("FLOP DU MOIS", lines(RECAP.flop), "");
+    item("FLOP DU MOIS", lines(RECAP.flop), "") +
+    monthsHtml;
+  card.hidden = false;
+}
+
+/* heatmap calendrier (style GitHub) : perf quotidienne hors apports, depuis daily.json */
+function renderHeatmap() {
+  const card = document.getElementById("heatmap-card");
+  const box = document.getElementById("heatmap");
+  if (!card || !box) return;
+  const accs = currentAccount === "all" ? DATA.accounts.map((a) => a.id) : [currentAccount];
+  // série quotidienne {date → {v, i}} agrégée sur les comptes filtrés (+ point live)
+  const days = [];
+  for (const [d, by] of Object.entries(DAILY || {})) {
+    if (accs.every((a) => by[a])) days.push({ d, v: accs.reduce((s, a) => s + by[a].v, 0), i: accs.reduce((s, a) => s + by[a].i, 0) });
+  }
+  const ipts = (INTRADAY && INTRADAY.points) || [];
+  if (INTRADAY && ipts.length && accs.every((a) => ipts[ipts.length - 1][a] != null) && !days.some((x) => x.d === INTRADAY.date)) {
+    const lp = ipts[ipts.length - 1];
+    days.push({ d: INTRADAY.date, v: accs.reduce((s, a) => s + lp[a], 0), i: accs.reduce((s, a) => s + ((INTRADAY.invested || {})[a] || 0), 0) });
+  }
+  days.sort((a, b) => a.d.localeCompare(b.d));
+  if (days.length < 2) { card.hidden = true; return; } // pas encore assez d'historique journalier
+  // perf de chaque jour vs jour précédent, nette des apports
+  const cells = [];
+  for (let i = 1; i < days.length; i++) {
+    const contrib = days[i].i - days[i - 1].i;
+    const base = days[i - 1].v + Math.max(0, contrib);
+    if (base > 0) cells.push({ d: days[i].d, pct: ((days[i].v - days[i - 1].v - contrib) / base) * 100 });
+  }
+  if (!cells.length) { card.hidden = true; return; }
+  const maxAbs = Math.max(...cells.map((c) => Math.abs(c.pct)), 0.2);
+  const level = (p) => Math.min(4, Math.max(1, Math.ceil((Math.abs(p) / maxAbs) * 4)));
+  // grille en colonnes-semaines (lun→ven), avec cases vides pour aligner le 1er jour
+  const dow = (ds) => (new Date(ds + "T12:00:00").getDay() + 6) % 7; // 0 = lundi
+  let html = "";
+  let pad = dow(cells[0].d);
+  if (pad > 4) pad = 0; // commence un week-end (rare) → pas de padding
+  for (let i = 0; i < pad; i++) html += `<span class="hm-cell hm-empty"></span>`;
+  cells.forEach((c) => {
+    if (dow(c.d) > 4) return; // week-end (crypto seule) : ignoré pour garder lun-ven
+    const klass = c.pct >= 0 ? `hm-pos-${level(c.pct)}` : `hm-neg-${level(c.pct)}`;
+    const dt = new Date(c.d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "short" });
+    html += `<span class="hm-cell ${klass}" title="${dt} : ${c.pct >= 0 ? "+" : ""}${c.pct.toFixed(2)} %"></span>`;
+  });
+  box.innerHTML = html;
   card.hidden = false;
 }
 
 function renderAll() {
-  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderSector(); renderForecast(); renderTable(); renderUpcoming(); renderDaySpark();
+  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderSector(); renderForecast(); renderTable(); renderUpcoming(); renderDaySpark(); renderHeatmap();
 }
 
 /* news éco : chargées depuis news.json (généré côté serveur depuis un flux RSS) */
@@ -735,7 +853,9 @@ async function boot() {
   if (!DATA) { document.querySelector(".wrap").innerHTML = `<div class="card"><h2 class="card-title">⚠️ data.json introuvable</h2></div>`; return; }
   BENCH = (await fetchJson("benchmarks.json")) || {};
   RECAP = await fetchJson("recap.json");
+  HISTORY = await fetchJson("history.json");
   renderRecap();
+  wirePosModal();
   // fraîcheur : recompte les minutes chaque minute ; re-fetch les données toutes les 5 min
   setInterval(renderFreshness, 60000);
   setInterval(async () => { await loadLiveData(); if (DATA) renderAll(); }, 300000);

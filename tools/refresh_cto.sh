@@ -7,7 +7,11 @@ DIR="/home/opc/Docker/sites/money/tools"
 HTML="/home/opc/Docker/sites/money/data"  # JSON dynamiques (volume, hors image)
 TR="/home/opc/tr_scraper"
 
-cd "$TR" && timeout 50 .venv/bin/python fetch_tr_portfolio.py < /dev/null || { echo "$(date) session TR expirée — relancer cto_relogin.sh"; exit 0; }
+cd "$TR" && timeout 50 .venv/bin/python fetch_tr_portfolio.py < /dev/null || {
+  echo "$(date) session TR expirée — relancer cto_relogin.sh"
+  python3.11 "$DIR/alerts.py" --tr-expired || true   # push ntfy (1×/jour)
+  exit 0
+}
 
 CASH=$(python3.11 -c "import json;print(json.load(open('$TR/out/trade_republic_profile_cash.json'))[0]['amount'])" 2>/dev/null || echo 0)
 python3.11 "$DIR/tr_to_data.py" --account cto \

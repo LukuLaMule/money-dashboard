@@ -38,8 +38,13 @@ Un sélecteur en haut de page, mémorisé entre les visites. Chaque thème chang
 
 ## 🚀 Fonctionnalités
 
-- 📊 **Courbe de performance** — valeur de marché vs apports investis, reconstruite mois par mois à partir des cours historiques.
-- 🎯 **KPIs** — valorisation, plus-value, dividendes encaissés, **perf des positions depuis l'achat** (avec tooltips explicatifs).
+- 📊 **Courbe de performance** — valeur de marché vs apports investis : historique mensuel + **points journaliers** + point live.
+- ⚡ **Quasi temps réel** — cours rafraîchis **toutes les 10 min** pendant les heures de marché (titres US cotés sur les places allemandes, EUR natif, 8h-22h) ; **sparkline de la séance**, **variation du jour par ligne**, indicateur de **fraîcheur** + statut d'ouverture des **6 marchés principaux**.
+- 🎯 **KPIs** — valorisation, **aujourd'hui**, plus-value, dividendes encaissés, perf des positions depuis l'achat, **TRI annualisé (XIRR)** (avec tooltips explicatifs).
+- 🗓️ **Récap mensuel auto** — perf hors apports, top/flop, dividendes, comparatif 6 mois (généré le 1er du mois).
+- 🔥 **Heatmap calendrier** — perf quotidienne façon GitHub (s'enrichit jour après jour).
+- 🔍 **Fiche par position** — clic sur une ligne : courbe du titre vs PRU, poids, dividendes de la ligne.
+- 🔔 **Alertes ntfy** — push si une position fait ±5 % dans la journée ou si la session TR expire.
 - 🥧 **Allocation** par ligne + **répartition par pays** 🌍 et par **secteur** 🏷️ (barres animées).
 - 🤑 **Dividendes** — historique mensuel, **rendement annuel**, et **calendrier prévisionnel** des 12 prochains mois (filtré sur les lignes encore détenues).
 - 🔮 **Prévisionnel** — projection par scénarios à rendement réglable, **dividendes réinvestis** et **effet de levier pondéré** par la composition réelle, en euros constants en option.
@@ -58,7 +63,7 @@ Un sélecteur en haut de page, mémorisé entre les visites. Chaque thème chang
 | **Serveur** | nginx statique derrière **Traefik** (SSL Let's Encrypt auto) |
 | **Données** | scripts **Python** (stdlib) — aucun framework, aucune DB |
 | **Cours** | Yahoo Finance (cours actuels + historique, conversion FX) |
-| **Auto** | `cron` : news chaque heure, cours + portefeuilles + reconstruction chaque jour |
+| **Auto** | `cron` : cours **toutes les 10 min** (heures de marché), portefeuille TR toutes les 30 min (session web entretenue sans 2FA), news chaque heure, full + récap mensuel |
 
 ---
 
@@ -78,18 +83,19 @@ Tout est converti en un seul fichier **`data.json`** qui pilote le dashboard.
 ```bash
 git clone https://github.com/LukuLaMule/money-dashboard.git
 cd money-dashboard
-cp html/data.example.json html/data.json   # remplis-le, ou génère-le via tools/
-docker compose up -d                         # → http://localhost
+mkdir -p data && cp html/data.example.json data/data.json   # remplis-le, ou génère-le via tools/
+docker compose up -d --build                                # → http://localhost
 ```
 
-Le dashboard lit `html/data.json`. Le format est documenté dans `html/data.example.json`.
+Le **code** est buildé dans l'image (Dockerfile) ; le dashboard lit les **données** dans `data/`
+(monté en volume, régénéré par les scripts `tools/`). Le format est documenté dans `html/data.example.json`.
 
 ---
 
 ## 🔒 Vie privée
 
 Ce dépôt est **public mais ne contient aucune donnée financière réelle**. Sont **gitignorés** :
-`html/data.json`, `tools/prices.json`, `tools/price_history.json`, `tools/cto_positions.json`, `tools/sources/`…
+`data/` (toutes les données générées), `tools/prices.json`, `tools/price_history.json`, `tools/sources/`, topic ntfy…
 Seuls le **code** et des **exemples anonymisés** sont publiés. Les captures ci-dessus utilisent un jeu de données **fictif**.
 
 ---

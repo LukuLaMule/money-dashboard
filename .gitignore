@@ -12,3 +12,6 @@ tools/cto_value.txt
 tools/symbols.json
 tools/sources/
 tools/prices_prev.json
+__pycache__/
+tools/ntfy_topic.txt
+tools/alerts_state.json

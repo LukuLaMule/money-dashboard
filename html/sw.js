@@ -1,5 +1,5 @@
 // service worker minimal — cache des assets statiques (données toujours fraîches via réseau)
-const CACHE = "money-v3"; // bump à chaque déploiement notable → purge le cache PWA
+const CACHE = "money-v4"; // bump à chaque déploiement notable → purge le cache PWA
 const ASSETS = ["/", "/index.html", "/style.css", "/app.js", "/manifest.json",
   "/assets/icon-192.png", "/assets/icon-512.png", "/assets/icon-180.png"];
 

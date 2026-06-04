@@ -194,6 +194,12 @@
         <div class="recap-grid" id="recap"></div>
       </div>
 
+      <div class="card span-2" id="heatmap-card" hidden>
+        <h2 class="card-title">🔥 CALENDRIER <span class="muted">— perf quotidienne, hors apports (lun-ven)</span></h2>
+        <div class="heatmap" id="heatmap"></div>
+        <p class="hm-legend muted">moins <span class="hm-cell hm-neg-4"></span><span class="hm-cell hm-neg-2"></span><span class="hm-cell hm-flat"></span><span class="hm-cell hm-pos-2"></span><span class="hm-cell hm-pos-4"></span> plus</p>
+      </div>
+
       <div class="card span-2">
         <h2 class="card-title">📰 NEWS ÉCO <span class="muted" id="news-src">— flux marché</span></h2>
         <div class="news-list" id="news"></div>
@@ -239,6 +245,17 @@
     </div>
     <p class="tiny">money.luku.fr · données personnelles · aucun conseil en investissement</p>
   </footer>
+
+  <div id="pos-modal" class="pos-modal" hidden>
+    <div class="pos-backdrop" aria-hidden="true"></div>
+    <div class="pos-card card" role="dialog" aria-modal="true" aria-labelledby="pos-title">
+      <button class="pos-close" aria-label="Fermer">✕</button>
+      <h3 id="pos-title"></h3>
+      <div class="pos-stats" id="pos-stats"></div>
+      <div class="chart-box" style="height:220px"><canvas id="posChart"></canvas></div>
+      <p class="muted pos-note" id="pos-note"></p>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="app.js"></script>

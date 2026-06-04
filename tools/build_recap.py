@@ -21,6 +21,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HTML = os.path.join(os.path.dirname(HERE), "data")  # JSON dynamiques (volume, hors image)
 MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin",
              "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+MONTHS_FR_ABBR = ["janv.", "févr.", "mars", "avr.", "mai", "juin",
+                  "juil.", "août", "sept.", "oct.", "nov.", "déc."]
 
 
 def load(path):
@@ -97,12 +99,29 @@ def main():
         if m["t"] not in seen:
             seen.add(m["t"]); uniq.append(m)
 
+    # comparatif : perf hors apports des 6 derniers mois (dont le mois du récap)
+    months_hist = []
+    for i in range(5, -1, -1):
+        m = month_add(ym, -i)
+        s_v = value_at_month_end(month_add(m, -1), daily, snapshots)
+        e_v = value_at_month_end(m, daily, snapshots)
+        s_i = invested_at_month_end(month_add(m, -1), daily, snapshots)
+        e_i = invested_at_month_end(m, daily, snapshots)
+        if s_v is None or e_v is None:
+            continue
+        c = (e_i or 0) - (s_i or 0)
+        g = e_v - s_v - c
+        b = s_v + max(0, c)
+        months_hist.append({"m": m, "label": MONTHS_FR_ABBR[int(m[5:7]) - 1],
+                            "pct": round(g / b * 100, 2) if b else 0.0})
+
     recap = {
         "month": ym,
         "label": f"{MONTHS_FR[int(ym[5:7]) - 1]} {ym[:4]}",
         "start_value": start, "end_value": end, "contrib": contrib,
         "gain": gain, "gain_pct": gain_pct, "dividends": dividends,
         "top": uniq[:3], "flop": [m for m in reversed(uniq[-3:]) if m["pct"] < 0],
+        "months": months_hist,
     }
     out = os.path.join(HTML, "recap.json")
     json.dump(recap, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)

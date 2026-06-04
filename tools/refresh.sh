@@ -50,12 +50,18 @@ fi
 CASH=$($PY -c "import json;print(json.load(open('$TR_DIR/out/trade_republic_profile_cash.json'))[0]['amount'])" 2>/dev/null || echo 0)
 if [ -f "$TR_TX" ]; then
   ARGS="--transactions $TR_TX --out $HTML/data.json --merge --prices $DIR/prices.json --cash $CASH"
-  if [ -f "$TR_V2" ]; then ARGS="$ARGS --portfolio-v2 $TR_V2"
-  elif [ -f "$DIR/cto_positions.json" ]; then ARGS="$ARGS --positions-file $DIR/cto_positions.json"; fi
+  if [ -f "$TR_V2" ]; then ARGS="$ARGS --portfolio-v2 $TR_V2"; fi
   $PY tr_to_data.py --account cto $ARGS || echo "cto: échec (non bloquant)"
 fi
 
+# --- Publie l'historique mensuel des cours (fiche par position côté front) ---
+# (cours publics Yahoo par ISIN, aucune donnée perso : publiable)
+cp -f "$DIR/price_history.json" "$HTML/history.json" 2>/dev/null || true
+
 # --- Enregistre la valo courante (intraday/daily) + horodatage fraîcheur ---
 $PY record_value.py || echo "record_value: échec (non bloquant)"
+
+# --- Alertes ntfy : position à ±5 % sur la journée (1×/jour/position) ---
+$PY alerts.py || echo "alerts: échec (non bloquant)"
 
 echo "✅ refresh ($MODE) terminé : $(date)"
