@@ -518,11 +518,11 @@ function marketStatus() {
   const tz = (zone) => { const p = new Date(new Date().toLocaleString("en-US", { timeZone: zone })); return { wd: p.getDay() >= 1 && p.getDay() <= 5, min: p.getHours() * 60 + p.getMinutes() }; };
   const paris = tz("Europe/Paris"), ny = tz("America/New_York"), ldn = tz("Europe/London"), tyo = tz("Asia/Tokyo");
   return [
-    { flag: "🇫🇷", name: "Euronext", open: paris.wd && paris.min >= 9 * 60 && paris.min < 17 * 60 + 30, hours: "9h00 – 17h30 (Paris)" },
-    { flag: "🇩🇪", name: "Francfort", open: paris.wd && paris.min >= 8 * 60 && paris.min < 22 * 60, hours: "8h00 – 22h00 (Paris) — Stuttgart/Francfort, où cotent les titres US du CTO" },
-    { flag: "🇺🇸", name: "NYSE", open: ny.wd && ny.min >= 9 * 60 + 30 && ny.min < 16 * 60, hours: "9h30 – 16h00 (New York) — séance régulière NYSE/NASDAQ" },
-    { flag: "🇬🇧", name: "Londres", open: ldn.wd && ldn.min >= 8 * 60 && ldn.min < 16 * 60 + 30, hours: "8h00 – 16h30 (Londres) — LSE" },
-    { flag: "🇯🇵", name: "Tokyo", open: tyo.wd && tyo.min >= 9 * 60 && tyo.min < 15 * 60 + 30, hours: "9h00 – 15h30 (Tokyo) — TSE" },
+    { flag: "🇫🇷", name: "Euronext", open: paris.wd && paris.min >= 9 * 60 && paris.min < 17 * 60 + 30, hours: "9h00 – 17h30 heure de Paris" },
+    { flag: "🇩🇪", name: "Francfort", open: paris.wd && paris.min >= 8 * 60 && paris.min < 22 * 60, hours: "8h00 – 22h00 heure de Paris — Stuttgart/Francfort, où cotent les titres US du CTO" },
+    { flag: "🇺🇸", name: "NYSE", open: ny.wd && ny.min >= 9 * 60 + 30 && ny.min < 16 * 60, hours: "≈ 15h30 – 22h00 heure de Paris (9h30 – 16h00 à New York) — séance régulière NYSE/NASDAQ" },
+    { flag: "🇬🇧", name: "Londres", open: ldn.wd && ldn.min >= 8 * 60 && ldn.min < 16 * 60 + 30, hours: "≈ 9h00 – 17h30 heure de Paris (8h00 – 16h30 à Londres) — LSE" },
+    { flag: "🇯🇵", name: "Tokyo", open: tyo.wd && tyo.min >= 9 * 60 && tyo.min < 15 * 60 + 30, hours: "≈ 2h00 – 8h30 heure de Paris (9h00 – 15h30 à Tokyo) — TSE" },
     { flag: "₿", name: "Crypto", open: true, hours: "24/7" },
   ];
 }
