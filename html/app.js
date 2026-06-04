@@ -513,20 +513,33 @@ function renderDaySpark() {
   });
 }
 
+/* statuts d'ouverture des marchés où cotent les positions (hors jours fériés) */
+function marketStatus() {
+  const tz = (zone) => { const p = new Date(new Date().toLocaleString("en-US", { timeZone: zone })); return { wd: p.getDay() >= 1 && p.getDay() <= 5, min: p.getHours() * 60 + p.getMinutes() }; };
+  const paris = tz("Europe/Paris"), ny = tz("America/New_York"), ldn = tz("Europe/London"), tyo = tz("Asia/Tokyo");
+  return [
+    { flag: "🇫🇷", name: "Euronext", open: paris.wd && paris.min >= 9 * 60 && paris.min < 17 * 60 + 30, hours: "9h00 – 17h30 (Paris)" },
+    { flag: "🇩🇪", name: "Francfort", open: paris.wd && paris.min >= 8 * 60 && paris.min < 22 * 60, hours: "8h00 – 22h00 (Paris) — Stuttgart/Francfort, où cotent les titres US du CTO" },
+    { flag: "🇺🇸", name: "NYSE", open: ny.wd && ny.min >= 9 * 60 + 30 && ny.min < 16 * 60, hours: "9h30 – 16h00 (New York) — séance régulière NYSE/NASDAQ" },
+    { flag: "🇬🇧", name: "Londres", open: ldn.wd && ldn.min >= 8 * 60 && ldn.min < 16 * 60 + 30, hours: "8h00 – 16h30 (Londres) — LSE" },
+    { flag: "🇯🇵", name: "Tokyo", open: tyo.wd && tyo.min >= 9 * 60 && tyo.min < 15 * 60 + 30, hours: "9h00 – 15h30 (Tokyo) — TSE" },
+    { flag: "₿", name: "Crypto", open: true, hours: "24/7" },
+  ];
+}
+
 /* fraîcheur des cours (header) — basée sur lastUpdateTime posé par record_value.py */
 function renderFreshness() {
   const el = document.getElementById("freshness");
   if (!el || !DATA) return;
-  // marché (Euronext + places allemandes / LS) ≈ lun-ven 8h-22h, heure Paris
-  const paris = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" }));
-  const open = paris.getDay() >= 1 && paris.getDay() <= 5 && paris.getHours() >= 8 && paris.getHours() < 22;
   let ago = "";
   if (DATA.lastUpdateTime) {
     const min = Math.max(0, Math.round((Date.now() - new Date(DATA.lastUpdateTime)) / 60000));
     ago = min < 1 ? "à l'instant" : min < 60 ? `il y a ${min} min` : min < 1440 ? `il y a ${Math.round(min / 60)} h` : `il y a ${Math.round(min / 1440)} j`;
-    ago = `cours mis à jour ${ago} · `;
+    ago = `<span class="mkt">cours mis à jour ${ago}</span>`;
   }
-  el.innerHTML = `${ago}<span class="dot ${open ? "open" : "closed"}"></span>marché ${open ? "ouvert" : "fermé"}`;
+  const chips = marketStatus().map((m) =>
+    `<span class="mkt" title="${m.hours}"><span class="dot ${m.open ? "open" : "closed"}"></span>${m.flag} ${m.name}</span>`).join("");
+  el.innerHTML = ago + chips;
 }
 
 /* récap du mois écoulé (recap.json, généré le 1er du mois) */

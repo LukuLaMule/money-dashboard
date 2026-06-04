@@ -56,7 +56,7 @@ nginx renvoie **405** sur toute méthode ≠ GET/HEAD. Pas d'UI d'édition, pas 
 - Courbe PERFORMANCE : points mensuels (snapshots) **+ points journaliers (daily.json) + point live**
   fusionnés par `combinedPoints()` ; filtre temporel calendaire (1M = 1 mois jour pour jour).
 - Table positions : colonne **Jour** (€ et % vs clôture veille, triable).
-- **Fraîcheur** dans le header (« cours mis à jour il y a X min · marché ouvert/fermé », heures Paris 8h-22h lun-ven).
+- **Fraîcheur + marchés** dans le header : « cours mis à jour il y a X min » + statut ouvert/fermé des 6 marchés principaux (Euronext 9h-17h30, Francfort/Stuttgart 8h-22h, NYSE 9h30-16h NY, Londres 8h-16h30, Tokyo 9h-15h30 JST, Crypto 24/7 — fuseaux gérés via Intl, jours fériés non gérés). Horaires au survol.
 - Bloc **RÉCAP du mois** (recap.json) : perf hors apports, dividendes, top/flop 3.
 - Auto-refresh front : re-fetch data/intraday/daily toutes les 5 min + re-render.
 

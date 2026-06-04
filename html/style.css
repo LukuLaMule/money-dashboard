@@ -447,11 +447,14 @@ tbody tr:hover { background: rgba(57,255,20,.06); }
 @media (max-width: 768px) { .bar-label { font-size: .82rem; } .bar-row { gap: 8px; } }
 .updated { text-align: right; color: var(--muted); font-size: .8rem; margin-top: 14px; }
 
-/* fraîcheur des cours (header) */
-.freshness { font-size: .72rem; color: var(--muted); letter-spacing: 1px; margin: -10px 0 14px; min-height: 1em; }
-.freshness .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+/* fraîcheur des cours + statuts des marchés (header) */
+.freshness { font-size: .72rem; color: var(--muted); letter-spacing: 1px; margin: -10px 0 14px; min-height: 1em;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; }
+.freshness .mkt { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: default; }
+.freshness .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .freshness .dot.open { background: #2fe6a0; box-shadow: 0 0 6px #2fe6a0; }
 .freshness .dot.closed { background: #ff5d5d; }
+@media (max-width: 600px) { .freshness { gap: 4px 10px; font-size: .66rem; } }
 
 /* sparkline de la séance (carte KPI Aujourd'hui) */
 .spark-box { position: relative; height: 34px; width: 100%; margin-top: 2px; }
