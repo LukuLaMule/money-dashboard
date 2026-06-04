@@ -18,6 +18,15 @@ docker compose up -d        # démarre / recrée
 # modif de data.json → servi en live (Cache-Control no-store), pas de rebuild
 ```
 
+## Rafraîchissement automatique (cron, sérialisé par flock /tmp/money_refresh.lock)
+- `refresh.sh news`   : toutes les heures à :17 — actus Yahoo.
+- `refresh.sh prices` : **toutes les 10 min, lun-ven 7h-20h GMT** — cours intraday seulement
+  (range 5d, pas d'historique/news/fetch TR), reconstruit data.json. ~10 s par run.
+  → le KPI « Aujourd'hui » suit le marché au lieu de rester figé sur les cours de 9h30.
+- `refresh.sh full`   : 7h30 GMT — cours + historique 5y + benchmarks + portefeuille TR.
+- `refresh_cto.sh`    : toutes les 4 h à :23 — CTO Trade Republic.
+- KPI « Aujourd'hui » : affiché en centimes (EUR2) quand |PnL| < 10 €, sinon arrondi à l'euro.
+
 ## Fichiers
 - `html/index.html` — structure (KPIs, tabs compte, 3 charts, table positions).
 - `html/style.css` — thème MLG + blocs transitions.dev.

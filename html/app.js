@@ -159,7 +159,9 @@ function renderKpis() {
   // KPI Aujourd'hui (variation du jour vs clôture veille)
   const dayEl = document.querySelector('[data-kpi="day"] .kpi-value');
   if (k.dayBase > 0) {
-    set("day", `${k.dayPnL >= 0 ? "+" : ""}${EUR.format(k.dayPnL)}`);
+    // centimes quand le montant est petit, pour éviter un « 0 € » trompeur
+    const fmtDay = Math.abs(k.dayPnL) < 10 ? EUR2 : EUR;
+    set("day", `${k.dayPnL >= 0 ? "+" : ""}${fmtDay.format(k.dayPnL)}`);
     sub("day", PCT(k.dayPct), k.dayPnL >= 0 ? "pos" : "neg");
     if (dayEl) { dayEl.classList.toggle("pos", k.dayPnL >= 0); dayEl.classList.toggle("neg", k.dayPnL < 0); }
   } else {
