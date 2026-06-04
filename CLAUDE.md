@@ -62,8 +62,21 @@ nginx renvoie **405** sur toute méthode ≠ GET/HEAD. Pas d'UI d'édition, pas 
   fusionnés par `combinedPoints()` ; filtre temporel calendaire (1M = 1 mois jour pour jour).
 - Table positions : colonne **Jour** (€ et % vs clôture veille, triable).
 - **Fraîcheur + marchés** dans le header : « cours mis à jour il y a X min » + statut ouvert/fermé des 6 marchés principaux (Euronext 9h-17h30, Francfort/Stuttgart 8h-22h, NYSE 9h30-16h NY, Londres 8h-16h30, Tokyo 9h-15h30 JST, Crypto 24/7 — fuseaux gérés via Intl, jours fériés non gérés). Horaires au survol.
-- Bloc **RÉCAP du mois** (recap.json) : perf hors apports, dividendes, top/flop 3.
+- Bloc **RÉCAP du mois** (recap.json) : perf hors apports, dividendes, top/flop 3, **comparatif 6 mois** (mini barres).
+- **Heatmap calendrier** (#heatmap-card) : perf quotidienne hors apports depuis daily.json, colonnes-semaines
+  lun-ven, 4 niveaux d'intensité — cachée tant que daily.json a < 2 jours.
+- **Fiche par position** : clic sur une ligne de la table → modal (courbe mensuelle du titre vs PRU depuis
+  `data/history.json` = copie publiable de tools/price_history.json faite par refresh.sh, poids, jour, dividendes de la ligne).
 - Auto-refresh front : re-fetch data/intraday/daily toutes les 5 min + re-render.
+
+## Alertes (ntfy.sh)
+- `tools/alerts.py` (appelé par refresh.sh) : push si une position fait **±5 %** dans la journée (1×/jour/ligne) ;
+  `--tr-expired` (appelé par refresh_cto.sh) : push si la session TR meurt. Topic secret : `tools/ntfy_topic.txt`
+  (gitignoré, chmod 600) ; état anti-spam : `tools/alerts_state.json`. S'abonner : app ntfy → topic du fichier.
+
+## Maintenance
+- Logs : rotation hebdo ×4 via `/etc/logrotate.d/money-refresh`.
+- fetch_prices : TLS vérifié, 2 retries backoff sur Yahoo.
 
 ## Données (data.json)
 3 collections : `snapshots` (date/account/value/invested), `dividends` (date/account/ticker/label/amount),
