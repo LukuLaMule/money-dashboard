@@ -18,7 +18,7 @@ import os
 from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HTML = os.path.join(os.path.dirname(HERE), "html")
+HTML = os.path.join(os.path.dirname(HERE), "data")  # JSON dynamiques (volume, hors image)
 MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin",
              "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
 

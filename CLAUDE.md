@@ -5,18 +5,23 @@ thème **MLG montage parody** (2013 CSGO/MW2 : hitmarkers, airhorn, pluie Dorito
 Public en **lecture seule**.
 
 ## Stack & déploiement
-- **nginx statique** (`nginx:1.27-alpine`) derrière **Traefik v3** (réseau `web`, SSL Let's Encrypt auto).
+- **Image buildée** (`Dockerfile` : nginx:1.27-alpine + COPY html/ + nginx.conf — comme les autres
+  sites de la machine) derrière **Traefik v3** (réseau `web`, SSL Let's Encrypt auto).
+- **Code DANS l'image, données EN volume** : `./data/` (JSON dynamiques régénérés par cron) est monté
+  sur `/srv/data:ro` ; nginx les sert aux URLs racine (`/data.json`…) via alias.
 - Live sur https://money.luku.fr — router Traefik `money` (labels dans `docker-compose.yml`).
-- Aucune base de données. Tout est piloté par `html/data.json`.
+- Aucune base de données. Tout est piloté par `data/data.json`.
 - Charts : **Chart.js 4** (CDN jsdelivr).
 - Animations : skill **transitions.dev** (number pop-in, tabs sliding, shimmer) — blocs collés verbatim dans `style.css`.
 
 ## Lancer / mettre à jour
 ```bash
 cd /home/opc/Docker/sites/money
-docker compose up -d        # démarre / recrée
-# modif de data.json → servi en live (Cache-Control no-store), pas de rebuild
+# modif de CODE (html/, nginx.conf, Dockerfile) → REBUILD obligatoire :
+docker compose up -d --build
+# modif de DONNÉES (data/*.json, par les crons) → servies en live, rien à faire
 ```
+⚠️ Penser à bumper `CACHE = "money-vN"` dans `html/sw.js` à chaque déploiement notable (purge PWA).
 
 ## Rafraîchissement automatique (cron, sérialisé par flock /tmp/money_refresh.lock)
 - `refresh.sh news`   : toutes les heures à :17 — actus Yahoo.
@@ -39,11 +44,11 @@ docker compose up -d        # démarre / recrée
 - `html/index.html` — structure (KPIs, tabs compte, 3 charts, table positions).
 - `html/style.css` — thème MLG + blocs transitions.dev.
 - `html/app.js` — fetch `data.json`, calcul KPIs, rendu charts, filtre compte, effets MLG.
-- `html/data.json` — **source unique des données** (snapshots / dividends / positions). Voir README.md.
-- `html/intraday.json` — points de valo de la séance (~10 min, par compte) — écrit par `tools/record_value.py`.
-- `html/daily.json` — historique JOURNALIER des valos (archivé depuis intraday au changement de jour).
-- `html/recap.json` — récap du mois écoulé (perf hors apports, top/flop, dividendes) — `tools/build_recap.py`, cron le 1er à 7h50.
-- (intraday/daily/recap/data/news .json = données réelles → gitignorés, repo public)
+- `data/data.json` — **source unique des données** (snapshots / dividends / positions). Voir README.md.
+- `data/intraday.json` — points de valo de la séance (~10 min, par compte) — écrit par `tools/record_value.py`.
+- `data/daily.json` — historique JOURNALIER des valos (archivé depuis intraday au changement de jour).
+- `data/recap.json` — récap du mois écoulé (perf hors apports, top/flop, dividendes) — `tools/build_recap.py`, cron le 1er à 7h50.
+- (`data/` entier = données réelles → gitignoré, repo public ; `Dockerfile` + `docker-compose.yml` = build)
 - `nginx.conf` — sert le statique, bloque tout sauf GET/HEAD (read-only), no-cache sur data.json.
 - `docker-compose.yml` — service `app` + labels Traefik.
 

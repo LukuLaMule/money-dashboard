@@ -8,7 +8,7 @@ fetch_news.py — récupère des actus éco via les flux RSS Yahoo Finance et é
 Le site est statique → ce script tourne côté serveur (cron) et rafraîchit news.json.
 
 Usage :
-  python3.11 fetch_news.py --out /home/opc/Docker/sites/money/html/news.json
+  python3.11 fetch_news.py --out /home/opc/Docker/sites/money/data/news.json
 """
 import argparse
 import json
@@ -59,7 +59,7 @@ def parse_items(xml):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=os.path.join(os.path.dirname(HERE), "html", "news.json"))
+    ap.add_argument("--out", default=os.path.join(os.path.dirname(HERE), "data", "news.json"))
     ap.add_argument("--symbols", default=os.path.join(HERE, "symbols.json"))
     args = ap.parse_args()
 

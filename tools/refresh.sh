@@ -9,7 +9,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"      # tools/
 ROOT="$(dirname "$DIR")"                                  # projet
 PY="python3.11"
-HTML="$ROOT/html"
+HTML="$ROOT/data"   # JSON dynamiques (volume /srv/data du conteneur, hors image)
 MODE="${1:-full}"
 
 cd "$DIR"

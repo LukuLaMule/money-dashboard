@@ -20,7 +20,7 @@ Usage :
       --transactions /home/opc/tr_scraper/out/trade_republic_transactions.json \
       --portfolio    /home/opc/tr_scraper/out/trade_republic_portfolio.json \
       --prices       /home/opc/Docker/sites/money/tools/prices.json \
-      --out          /home/opc/Docker/sites/money/html/data.json \
+      --out          /home/opc/Docker/sites/money/data/data.json \
       --merge        # conserve les autres comptes déjà présents dans data.json
 """
 import argparse

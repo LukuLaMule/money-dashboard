@@ -18,10 +18,10 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HTML = os.path.join(os.path.dirname(HERE), "html")
-DATA = os.path.join(HTML, "data.json")
-INTRADAY = os.path.join(HTML, "intraday.json")
-DAILY = os.path.join(HTML, "daily.json")
+DATADIR = os.path.join(os.path.dirname(HERE), "data")
+DATA = os.path.join(DATADIR, "data.json")
+INTRADAY = os.path.join(DATADIR, "intraday.json")
+DAILY = os.path.join(DATADIR, "daily.json")
 PARIS = ZoneInfo("Europe/Paris")
 
 

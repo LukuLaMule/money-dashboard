@@ -11,7 +11,7 @@ Sorties :
   - tools/price_history.json : { ISIN: { "YYYY-MM-01": close_EUR, ... } }
 
 Usage :
-  python3.11 fetch_prices.py --data /home/opc/Docker/sites/money/html/data.json
+  python3.11 fetch_prices.py --data /home/opc/Docker/sites/money/data/data.json
   python3.11 fetch_prices.py --isins LU2655993207,FR0000120073 --range 5y
 """
 import argparse

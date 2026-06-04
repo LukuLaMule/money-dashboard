@@ -5,7 +5,7 @@ import os
 from fetch_prices import chart, to_eur
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(os.path.dirname(HERE), "html", "benchmarks.json")
+OUT = os.path.join(os.path.dirname(HERE), "data", "benchmarks.json")
 BENCH = {"CAC 40": "^FCHI", "S&P 500": "^GSPC", "MSCI World": "EWLD.PA"}
 
 
