@@ -577,3 +577,7 @@ body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-are
   .t-tab { min-height: 38px; }
   tbody tr { cursor: default; }
 }
+
+/* discipline d'investissement */
+.discipline-stats { font-size: .82rem; color: var(--muted); align-self: center; }
+.discipline-stats b { color: var(--txt); }

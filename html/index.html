@@ -178,6 +178,18 @@
         <p class="forecast-note muted" id="forecast-note"></p>
       </div>
 
+      <div class="card chart-card span-2">
+        <h2 class="card-title">🎯 DISCIPLINE <span class="muted">— apports réels vs objectif mensuel</span></h2>
+        <div class="forecast-controls">
+          <label class="forecast-input">Objectif mensuel
+            <input type="number" id="goal-monthly" value="200" min="0" step="10" inputmode="numeric"> €
+          </label>
+          <span class="discipline-stats" id="discipline-stats"></span>
+        </div>
+        <div class="chart-box" style="height:210px"><canvas id="disciplineChart"></canvas></div>
+        <p class="chart-cap" id="discipline-cap"></p>
+      </div>
+
       <div class="card span-2">
         <h2 class="card-title">📅 DIVIDENDES À VENIR <span class="muted">(12 mois, est. · lignes détenues)</span></h2>
         <div class="chart-box" style="height:150px;margin-bottom:8px"><canvas id="calChart"></canvas></div>

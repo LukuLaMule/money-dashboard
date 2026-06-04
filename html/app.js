@@ -680,8 +680,59 @@ function renderHeatmap() {
   card.hidden = false;
 }
 
+/* discipline d'investissement : apports réels par mois vs objectif fixé
+   (convention snapshots : daté M-01 = cumul FIN du mois M → apports du mois M
+    = invested(M) − invested(mois précédent) ; le mois courant grandit au fil des apports) */
+function renderDiscipline() {
+  destroy("discipline");
+  const cv = document.getElementById("disciplineChart");
+  if (!cv) return;
+  const p = palette(); Chart.defaults.color = p.tick;
+  let goal = 200;
+  try { goal = Math.max(0, +localStorage.getItem("money-goal") || 200); } catch (e) {}
+  const input = document.getElementById("goal-monthly");
+  if (input && document.activeElement !== input) input.value = goal;
+  const months = monthsSorted();
+  const sumInv = (d) => DATA.snapshots.filter((s) => s.date === d && accFilter(s) && s.invested != null).reduce((a, r) => a + r.invested, 0);
+  const rows = [];
+  for (let i = 1; i < months.length; i++) {
+    rows.push({ m: months[i].slice(0, 7), c: Math.max(0, sumInv(months[i]) - sumInv(months[i - 1])), cur: i === months.length - 1 });
+  }
+  const view = rows.filter((r) => inRange(r.m + "-01"));
+  if (!view.length) return;
+  const GREEN = "#2fe6a0", RED = "#ff5d5d", PARTIAL = p.gold, CUR = p.cyan;
+  const colorOf = (r) => (r.c >= goal && goal > 0 ? GREEN : r.cur ? CUR : r.c > 0 ? PARTIAL : RED);
+  charts.discipline = new Chart(cv, {
+    type: "bar",
+    data: { labels: view.map((r) => r.m), datasets: [
+      { label: "Apports", data: view.map((r) => r.c), backgroundColor: view.map(colorOf), borderRadius: 5 },
+      { label: `Objectif ${EUR.format(goal)}`, data: view.map(() => goal), type: "line", borderColor: p.red, borderDash: [7, 5], borderWidth: 2, pointRadius: 0, fill: false },
+    ] },
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+      plugins: { legend: { labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${EUR.format(c.parsed.y)}`,
+        afterBody: (items) => { const r = view[items[0].dataIndex]; return r.cur ? "mois en cours" : r.c >= goal && goal > 0 ? "✅ objectif tenu" : r.c > 0 ? "🟡 partiel" : "❌ raté"; } } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: p.grid }, ticks: { callback: (v) => EUR.format(v) } } } },
+  });
+  // stats : mois finis uniquement (le mois courant ne compte ni pour ni contre, sauf déjà atteint)
+  const done = rows.filter((r) => !r.cur);
+  const ok = done.filter((r) => r.c >= goal && goal > 0).length;
+  let streak = 0;
+  const seq = [...done, ...(rows.length && rows[rows.length - 1].c >= goal && goal > 0 ? [rows[rows.length - 1]] : [])];
+  for (let i = seq.length - 1; i >= 0 && seq[i].c >= goal && goal > 0; i--) streak++;
+  const ecart = done.reduce((a, r) => a + (r.c - goal), 0);
+  const statsEl = document.getElementById("discipline-stats");
+  if (statsEl) statsEl.innerHTML = goal > 0
+    ? `✅ <b>${ok}/${done.length}</b> mois tenus · 🔥 série en cours : <b>${streak}</b> · écart cumulé vs plan : <span class="${ecart >= 0 ? "pos" : "neg"}">${ecart >= 0 ? "+" : ""}${EUR.format(ecart)}</span>`
+    : "Fixe un objectif pour activer le suivi.";
+  const cap = document.getElementById("discipline-cap");
+  if (cap) {
+    const curRow = rows[rows.length - 1];
+    cap.innerHTML = curRow ? `📍 Ce mois-ci : <b>${EUR.format(curRow.c)}</b> sur ${EUR.format(goal)} ${curRow.c >= goal && goal > 0 ? "— ✅ objectif atteint !" : `— reste ${EUR.format(Math.max(0, goal - curRow.c))}`}` : "";
+  }
+}
+
 function renderAll() {
-  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderSector(); renderForecast(); renderTable(); renderUpcoming(); renderDaySpark(); renderHeatmap();
+  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderSector(); renderForecast(); renderTable(); renderUpcoming(); renderDaySpark(); renderHeatmap(); renderDiscipline();
 }
 
 /* news éco : chargées depuis news.json (généré côté serveur depuis un flux RSS) */
@@ -864,6 +915,11 @@ async function boot() {
   wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });
   wireTabBar("#range-tabs", (tab) => { currentRange = +tab.dataset.range; });
   wireTabBar("#forecast-tabs", (tab) => { forecastYears = +tab.dataset.years; });
+  const goalInput = document.getElementById("goal-monthly");
+  if (goalInput) goalInput.addEventListener("input", () => {
+    try { localStorage.setItem("money-goal", String(Math.max(0, +goalInput.value || 0))); } catch (e) {}
+    if (DATA) renderDiscipline();
+  });
   ["forecast-monthly", "forecast-rate", "forecast-infl", "forecast-div"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("input", () => { if (DATA) renderForecast(); });

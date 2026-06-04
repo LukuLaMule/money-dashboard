@@ -38,12 +38,13 @@ def month_add(ym, n):
 
 
 def value_at_month_end(ym, daily, snapshots):
-    """Valo totale en fin de mois ym : dernier point daily du mois, sinon snapshot du 1er du mois suivant."""
+    """Valo totale en fin de mois ym : dernier point daily du mois, sinon snapshot.
+    Convention des snapshots (build_invested_curve / bourse_direct) : le snapshot
+    daté « ym-01 » porte l'état de FIN du mois ym (cumul du mois inclus)."""
     days = sorted(d for d in daily if d.startswith(ym))
     if days:
         return round(sum(v["v"] for v in daily[days[-1]].values()), 2)
-    nxt = month_add(ym, 1) + "-01"
-    rows = [s for s in snapshots if s["date"] == nxt and s.get("value") is not None]
+    rows = [s for s in snapshots if s["date"] == ym + "-01" and s.get("value") is not None]
     return round(sum(s["value"] for s in rows), 2) if rows else None
 
 
@@ -51,8 +52,7 @@ def invested_at_month_end(ym, daily, snapshots):
     days = sorted(d for d in daily if d.startswith(ym))
     if days:
         return round(sum(v["i"] for v in daily[days[-1]].values()), 2)
-    nxt = month_add(ym, 1) + "-01"
-    rows = [s for s in snapshots if s["date"] == nxt and s.get("invested") is not None]
+    rows = [s for s in snapshots if s["date"] == ym + "-01" and s.get("invested") is not None]
     return round(sum(s["invested"] for s in rows), 2) if rows else None
 
 
