@@ -22,6 +22,9 @@ let currentBench = "";   // indice de comparaison ("" = aucun)
 let BENCH = {};          // historiques d'indices (benchmarks.json)
 let posSort = { key: "value", dir: -1 }; // tri du tableau des positions
 let charts = {};
+let INTRADAY = null; // intraday.json — points de la séance (~10 min)
+let DAILY = null;    // daily.json — historique journalier des valos
+let RECAP = null;    // recap.json — récap du mois écoulé
 
 /* ---------- pays / zone par ISIN ---------- */
 const ZONE_BY_ISIN = {
@@ -98,10 +101,10 @@ const accFilter = (row) => currentAccount === "all" || row.account === currentAc
 const monthsSorted = () => [...new Set(DATA.snapshots.map((s) => s.date))].sort();
 
 function rangeCutoff() {
-  const months = monthsSorted();
-  if (!currentRange || !months.length) return null;
-  const idx = Math.max(0, months.length - currentRange);
-  return months[idx];
+  if (!currentRange) return null;
+  // calendaire : « 1M » = depuis 1 mois jour pour jour (cohérent avec les points journaliers)
+  const d = new Date(); d.setMonth(d.getMonth() - currentRange);
+  return d.toISOString().slice(0, 10);
 }
 function inRange(date) {
   const c = rangeCutoff();
@@ -113,6 +116,18 @@ function seriesFor(field) {
     const rows = DATA.snapshots.filter((s) => s.date === d && accFilter(s) && s[field] != null);
     return rows.length ? rows.reduce((a, r) => a + r[field], 0) : null;
   });
+}
+
+/* XIRR (taux de rendement interne annualisé) par bisection — robuste, pas de dérivée */
+function xirr(flows) {
+  if (flows.length < 2) return null;
+  const t0 = flows[0].t;
+  const yr = (d) => (d - t0) / 31557600000; // ms → années
+  const f = (r) => flows.reduce((a, c) => a + c.v / Math.pow(1 + r, yr(c.t)), 0);
+  let lo = -0.95, hi = 10;
+  if (f(lo) * f(hi) > 0) return null;
+  for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; if (f(lo) * f(m) <= 0) hi = m; else lo = m; }
+  return ((lo + hi) / 2) * 100;
 }
 
 function computeKpis() {
@@ -144,7 +159,15 @@ function computeKpis() {
   const yearAgo = new Date(); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
   const div12 = DATA.dividends.filter(accFilter).filter((d) => new Date(d.date) >= yearAgo).reduce((a, r) => a + r.amount, 0);
   const yieldPct = value ? (div12 / value) * 100 : 0;
-  return { value, invested, gain, gainPct, perf, div, div12, yieldPct, dayPnL, dayBase, dayPct };
+  // TRI annualisé : apports datés (Δinvested mensuel) en sorties, valeur actuelle en entrée
+  let prevInv = 0; const flows = [];
+  for (const d of dates) {
+    const inv = sumAt(d, "invested"); const c = inv - prevInv; prevInv = inv;
+    if (Math.abs(c) > 0.005) flows.push({ t: new Date(d), v: -c });
+  }
+  flows.push({ t: new Date(), v: value });
+  const xirrPct = value > 0 ? xirr(flows) : null;
+  return { value, invested, gain, gainPct, perf, div, div12, yieldPct, dayPnL, dayBase, dayPct, xirrPct };
 }
 
 function renderKpis() {
@@ -171,6 +194,15 @@ function renderKpis() {
   sub("gain", PCT(k.gainPct), k.gain >= 0 ? "pos" : "neg");
   sub("div", `rendement ${k.yieldPct.toFixed(2)} %/an`, "");
   sub("perf", "positions · depuis l'achat", k.perf >= 0 ? "pos" : "neg");
+  // TRI annualisé (XIRR)
+  const xirrEl = document.querySelector('[data-kpi="xirr"] .kpi-value');
+  if (k.xirrPct != null && isFinite(k.xirrPct)) {
+    set("xirr", PCT(k.xirrPct));
+    sub("xirr", "%/an · pondéré des apports", k.xirrPct >= 0 ? "pos" : "neg");
+    if (xirrEl) { xirrEl.classList.toggle("pos", k.xirrPct >= 0); xirrEl.classList.toggle("neg", k.xirrPct < 0); }
+  } else {
+    set("xirr", "—"); sub("xirr", "pas assez d'historique", "");
+  }
 }
 
 /* ---------- charts (couleurs pilotées par le thème CSS) ---------- */
@@ -186,12 +218,40 @@ function palette() {
 Chart.defaults.font.family = "'Inter','Russo One',sans-serif";
 const destroy = (n) => { if (charts[n]) { charts[n].destroy(); delete charts[n]; } };
 
+/* points combinés pour la courbe valeur/investi :
+   snapshots MENSUELS (historique) + daily.json (granularité JOUR, depuis 2026-06)
+   + point live du jour (dernier point intraday). Dédoublonnés par date. */
+function combinedPoints() {
+  const by = new Map(); // date → {d, val, inv}
+  for (const d of monthsSorted()) {
+    const rows = DATA.snapshots.filter((s) => s.date === d && accFilter(s));
+    if (!rows.length) continue;
+    const val = rows.some((r) => r.value != null) ? rows.reduce((a, r) => a + (r.value || 0), 0) : null;
+    by.set(d, { d, val, inv: rows.reduce((a, r) => a + (r.invested || 0), 0) });
+  }
+  const accs = currentAccount === "all" ? DATA.accounts.map((a) => a.id) : [currentAccount];
+  for (const [d, accVals] of Object.entries(DAILY || {})) {
+    if (accs.every((a) => accVals[a]))
+      by.set(d, { d, val: accs.reduce((s, a) => s + accVals[a].v, 0), inv: accs.reduce((s, a) => s + accVals[a].i, 0) });
+  }
+  // point live (dernière mesure de la séance en cours)
+  const ipts = (INTRADAY && INTRADAY.points) || [];
+  if (INTRADAY && ipts.length && accs.every((a) => ipts[ipts.length - 1][a] != null)) {
+    const lp = ipts[ipts.length - 1];
+    by.set(INTRADAY.date, { d: INTRADAY.date, val: accs.reduce((s, a) => s + lp[a], 0), inv: accs.reduce((s, a) => s + ((INTRADAY.invested || {})[a] || 0), 0) });
+  }
+  return [...by.values()].sort((a, b) => a.d.localeCompare(b.d));
+}
+const ptLabel = (d) => (d.endsWith("-01") ? d.slice(0, 7) : `${d.slice(8)}/${d.slice(5, 7)}`);
+
 function renderPerf() {
   destroy("perf");
   const p = palette(); Chart.defaults.color = p.tick;
-  const labels = monthsSorted().filter(inRange).map((d) => d.slice(0, 7));
-  const valSeries = seriesFor("value");
-  const invSeries = seriesFor("invested");
+  const allPts = combinedPoints();
+  const pts = allPts.filter((pt) => inRange(pt.d));
+  const labels = pts.map((pt) => ptLabel(pt.d));
+  const valSeries = pts.map((pt) => pt.val);
+  const invSeries = pts.map((pt) => pt.inv);
   const lastIdx = valSeries.reduce((acc, v, i) => (v != null ? i : acc), -1);
   const lastDot = (color) => ({ pointRadius: (ctx) => (ctx.dataIndex === lastIdx ? 5 : 0), pointBackgroundColor: color, pointBorderColor: color, pointHoverRadius: 6 });
   const datasets = [
@@ -201,8 +261,6 @@ function renderPerf() {
   // comparaison indice : "si j'avais investi MES apports (DCA) sur l'indice depuis le début"
   if (currentBench && BENCH[currentBench]) {
     const series = BENCH[currentBench];
-    const allMonths = monthsSorted();
-    const investedAt = (d) => DATA.snapshots.filter((s) => s.date === d && accFilter(s) && s.invested != null).reduce((a, r) => a + r.invested, 0);
     const priceAt = (m) => {
       if (series[m] != null) return series[m];
       const ks = Object.keys(series).filter((k) => k <= m).sort();
@@ -210,13 +268,13 @@ function renderPerf() {
     };
     let units = 0, prevInv = 0;
     const whatif = {};
-    for (const d of allMonths) {
-      const price = priceAt(d), inv = investedAt(d), contrib = inv - prevInv;
-      prevInv = inv;
-      if (price) { units += contrib / price; whatif[d] = Math.round(units * price); }
-      else whatif[d] = null;
+    for (const pt of allPts) {
+      const price = priceAt(pt.d.slice(0, 7) + "-01"), contrib = pt.inv - prevInv;
+      prevInv = pt.inv;
+      if (price) { units += contrib / price; whatif[pt.d] = Math.round(units * price); }
+      else whatif[pt.d] = null;
     }
-    const data = allMonths.filter(inRange).map((d) => whatif[d]);
+    const data = pts.map((pt) => whatif[pt.d]);
     const benchColor = "#ff2e97"; // magenta vif fixe → visible sur tous les thèmes
     datasets.push({ label: `Si investi sur ${currentBench}`, data, borderColor: benchColor, backgroundColor: benchColor, borderDash: [8, 4], borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4, fill: false, spanGaps: true });
   }
@@ -302,6 +360,7 @@ function renderTable() {
     ticker: (p) => p.ticker || "", label: (p) => p.label || "", account: (p) => p.account || "", zone: (p) => zoneOf(p),
     shares: (p) => (p.shares == null ? NEG : p.shares), pru: (p) => (p.pru == null ? NEG : p.pru),
     last: (p) => (p.last == null ? NEG : p.last), value: (p) => p._val, perf: (p) => p._pct,
+    day: (p) => (p._day == null ? NEG : p._day),
   };
   const get = ext[posSort.key] || ext.value;
   // indicateur de tri sur l'en-tête
@@ -310,7 +369,11 @@ function renderTable() {
     th.classList.toggle("sort-desc", th.dataset.sort === posSort.key && posSort.dir === -1);
   });
   DATA.positions.filter(accFilter)
-    .map((p) => ({ ...p, _val: posValue(p), _gain: posGain(p), _pct: posGainPct(p) }))
+    .map((p) => ({
+      ...p, _val: posValue(p), _gain: posGain(p), _pct: posGainPct(p),
+      _day: p.shares != null && p.last != null && p.prevClose != null ? p.shares * (p.last - p.prevClose) : null,
+      _dayPct: p.last != null && p.prevClose ? ((p.last - p.prevClose) / p.prevClose) * 100 : 0,
+    }))
     .sort((a, b) => { const x = get(a), y = get(b); const c = typeof x === "string" ? x.localeCompare(y) : x - y; return c * posSort.dir; })
     .forEach((p) => {
       const cls = p._gain >= 0 ? "pos" : "neg";
@@ -327,6 +390,7 @@ function renderTable() {
         <td class="num">${qty}</td>
         <td class="num">${pru}</td>
         <td class="num">${last}</td>
+        <td class="num ${p._day == null ? "" : p._day >= 0 ? "pos" : "neg"}">${p._day == null ? dash : `${p._day >= 0 ? "+" : ""}${EUR2.format(p._day)} (${PCT(p._dayPct)})`}</td>
         <td class="num">${EUR.format(p._val)}</td>
         <td class="num ${cls}">${p._gain >= 0 ? "+" : ""}${EUR.format(p._gain)} (${PCT(p._pct)})</td>`;
       tbody.appendChild(tr);
@@ -426,8 +490,67 @@ function renderForecast() {
     + ". Projection non contractuelle.";
 }
 
+/* sparkline de la séance (carte KPI Aujourd'hui) — points intraday du compte filtré */
+function renderDaySpark() {
+  destroy("spark");
+  const box = document.querySelector('[data-kpi="day"] .spark-box');
+  if (!box) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const ipts = (INTRADAY && INTRADAY.date === today && INTRADAY.points) || [];
+  const accs = currentAccount === "all" ? DATA.accounts.map((a) => a.id) : [currentAccount];
+  const vals = ipts.map((pt) => (accs.every((a) => pt[a] != null) ? accs.reduce((s, a) => s + pt[a], 0) : null));
+  const nn = vals.filter((v) => v != null);
+  if (nn.length < 2) { box.classList.add("empty"); return; }
+  box.classList.remove("empty");
+  const up = nn[nn.length - 1] >= nn[0];
+  const color = up ? "#2fe6a0" : "#ff5d5d";
+  charts.spark = new Chart(document.getElementById("daySpark"), {
+    type: "line",
+    data: { labels: ipts.map((pt) => pt.t), datasets: [{ data: vals, borderColor: color, backgroundColor: withAlpha(color, "22"), fill: true, borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 3, tension: .3, spanGaps: true }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { display: false }, tooltip: { displayColors: false, callbacks: { title: (c) => c[0].label, label: (c) => EUR.format(c.parsed.y) } } },
+      scales: { x: { display: false }, y: { display: false } } },
+  });
+}
+
+/* fraîcheur des cours (header) — basée sur lastUpdateTime posé par record_value.py */
+function renderFreshness() {
+  const el = document.getElementById("freshness");
+  if (!el || !DATA) return;
+  // marché (Euronext + places allemandes / LS) ≈ lun-ven 8h-22h, heure Paris
+  const paris = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+  const open = paris.getDay() >= 1 && paris.getDay() <= 5 && paris.getHours() >= 8 && paris.getHours() < 22;
+  let ago = "";
+  if (DATA.lastUpdateTime) {
+    const min = Math.max(0, Math.round((Date.now() - new Date(DATA.lastUpdateTime)) / 60000));
+    ago = min < 1 ? "à l'instant" : min < 60 ? `il y a ${min} min` : min < 1440 ? `il y a ${Math.round(min / 60)} h` : `il y a ${Math.round(min / 1440)} j`;
+    ago = `cours mis à jour ${ago} · `;
+  }
+  el.innerHTML = `${ago}<span class="dot ${open ? "open" : "closed"}"></span>marché ${open ? "ouvert" : "fermé"}`;
+}
+
+/* récap du mois écoulé (recap.json, généré le 1er du mois) */
+function renderRecap() {
+  const card = document.getElementById("recap-card");
+  if (!card || !RECAP || !RECAP.month) return;
+  const box = document.getElementById("recap");
+  const title = document.getElementById("recap-month");
+  if (title) title.textContent = "— " + (RECAP.label || RECAP.month);
+  const sgn = (v) => `${v >= 0 ? "+" : ""}`;
+  const cls = (v) => (v >= 0 ? "pos" : "neg");
+  const item = (label, value, sub) => `<div class="recap-item"><span class="r-label">${label}</span><span class="r-value">${value}</span>${sub ? `<span class="r-sub">${sub}</span>` : ""}</div>`;
+  const lines = (arr) => (arr || []).map((x) => `<span class="${cls(x.pct)}">${x.t} ${sgn(x.pct)}${x.pct.toFixed(1)} %</span>`).join(" · ") || "—";
+  box.innerHTML =
+    item("PERF DU MOIS (hors apports)", `<span class="${cls(RECAP.gain)}">${sgn(RECAP.gain)}${EUR.format(RECAP.gain)} (${sgn(RECAP.gain_pct)}${RECAP.gain_pct.toFixed(1)} %)</span>`,
+      `${EUR.format(RECAP.start_value)} → ${EUR.format(RECAP.end_value)}${RECAP.contrib ? ` · apports ${EUR.format(RECAP.contrib)}` : ""}`) +
+    item("DIVIDENDES ENCAISSÉS", EUR2.format(RECAP.dividends || 0), "") +
+    item("TOP DU MOIS", lines(RECAP.top), "") +
+    item("FLOP DU MOIS", lines(RECAP.flop), "");
+  card.hidden = false;
+}
+
 function renderAll() {
-  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderSector(); renderForecast(); renderTable(); renderUpcoming();
+  renderKpis(); renderPerf(); renderDiv(); renderAlloc(); renderCountry(); renderSector(); renderForecast(); renderTable(); renderUpcoming(); renderDaySpark();
 }
 
 /* news éco : chargées depuis news.json (généré côté serveur depuis un flux RSS) */
@@ -579,11 +702,30 @@ function wireTheme() {
 /* ============================================================
    boot
    ============================================================ */
+const fetchJson = async (url) => { try { return await (await fetch(url, { cache: "no-store" })).json(); } catch (e) { return null; } };
+
+async function loadLiveData() {
+  const [data, intraday, daily] = await Promise.all([fetchJson("data.json"), fetchJson("intraday.json"), fetchJson("daily.json")]);
+  if (data) DATA = data;
+  INTRADAY = intraday; DAILY = daily;
+  if (DATA) {
+    const el = document.getElementById("lastUpdate");
+    if (el) el.textContent = DATA.lastUpdateTime
+      ? new Date(DATA.lastUpdateTime).toLocaleString("fr-FR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
+      : new Date(DATA.lastUpdate).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  }
+  renderFreshness();
+}
+
 async function boot() {
-  try { DATA = await (await fetch("data.json", { cache: "no-store" })).json(); }
-  catch (e) { document.querySelector(".wrap").innerHTML = `<div class="card"><h2 class="card-title">⚠️ data.json introuvable</h2></div>`; return; }
-  document.getElementById("lastUpdate").textContent = new Date(DATA.lastUpdate).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
-  try { BENCH = await (await fetch("benchmarks.json", { cache: "no-store" })).json(); } catch (e) { BENCH = {}; }
+  await loadLiveData();
+  if (!DATA) { document.querySelector(".wrap").innerHTML = `<div class="card"><h2 class="card-title">⚠️ data.json introuvable</h2></div>`; return; }
+  BENCH = (await fetchJson("benchmarks.json")) || {};
+  RECAP = await fetchJson("recap.json");
+  renderRecap();
+  // fraîcheur : recompte les minutes chaque minute ; re-fetch les données toutes les 5 min
+  setInterval(renderFreshness, 60000);
+  setInterval(async () => { await loadLiveData(); if (DATA) renderAll(); }, 300000);
   wireTheme();
   wireTabBar("#bench-tabs", (tab) => { currentBench = tab.dataset.bench; });
   wireTabBar("#account-tabs", (tab) => { currentAccount = tab.dataset.acc; });

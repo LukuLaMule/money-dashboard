@@ -447,6 +447,23 @@ tbody tr:hover { background: rgba(57,255,20,.06); }
 @media (max-width: 768px) { .bar-label { font-size: .82rem; } .bar-row { gap: 8px; } }
 .updated { text-align: right; color: var(--muted); font-size: .8rem; margin-top: 14px; }
 
+/* fraîcheur des cours (header) */
+.freshness { font-size: .72rem; color: var(--muted); letter-spacing: 1px; margin: -10px 0 14px; min-height: 1em; }
+.freshness .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+.freshness .dot.open { background: #2fe6a0; box-shadow: 0 0 6px #2fe6a0; }
+.freshness .dot.closed { background: #ff5d5d; }
+
+/* sparkline de la séance (carte KPI Aujourd'hui) */
+.spark-box { position: relative; height: 34px; width: 100%; margin-top: 2px; }
+.spark-box.empty { display: none; }
+
+/* récap mensuel */
+.recap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.recap-item { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
+.recap-item .r-label { display: block; font-size: .7rem; color: var(--muted); letter-spacing: 1px; margin-bottom: 4px; }
+.recap-item .r-value { font-family: var(--font-num); font-size: 1.05rem; }
+.recap-item .r-sub { display: block; font-size: .78rem; color: var(--muted); margin-top: 2px; }
+
 /* footer */
 .footer { position: relative; z-index: 3; text-align: center; padding: 30px 16px 60px; color: var(--muted); }
 .footer strong { color: var(--gold); }

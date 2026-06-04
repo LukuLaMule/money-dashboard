@@ -6,6 +6,9 @@
 # ── Données financières réelles (NE PAS publier) ──
 html/data.json
 html/news.json
+html/intraday.json
+html/daily.json
+html/recap.json
 tools/prices.json
 tools/price_history.json
 tools/cto_positions.json

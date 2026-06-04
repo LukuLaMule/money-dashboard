@@ -40,11 +40,25 @@ docker compose up -d        # démarre / recrée
 - `html/style.css` — thème MLG + blocs transitions.dev.
 - `html/app.js` — fetch `data.json`, calcul KPIs, rendu charts, filtre compte, effets MLG.
 - `html/data.json` — **source unique des données** (snapshots / dividends / positions). Voir README.md.
+- `html/intraday.json` — points de valo de la séance (~10 min, par compte) — écrit par `tools/record_value.py`.
+- `html/daily.json` — historique JOURNALIER des valos (archivé depuis intraday au changement de jour).
+- `html/recap.json` — récap du mois écoulé (perf hors apports, top/flop, dividendes) — `tools/build_recap.py`, cron le 1er à 7h50.
+- (intraday/daily/recap/data/news .json = données réelles → gitignorés, repo public)
 - `nginx.conf` — sert le statique, bloque tout sauf GET/HEAD (read-only), no-cache sur data.json.
 - `docker-compose.yml` — service `app` + labels Traefik.
 
 ## Read-only
 nginx renvoie **405** sur toute méthode ≠ GET/HEAD. Pas d'UI d'édition, pas d'API.
+
+## Front — fonctionnalités notables
+- 6 KPI : valorisation, **Aujourd'hui** (+ sparkline de séance depuis intraday.json), plus-value,
+  dividendes, perf positions, **TRI annualisé (XIRR**, bisection, flux = Δinvested mensuels + valeur actuelle).
+- Courbe PERFORMANCE : points mensuels (snapshots) **+ points journaliers (daily.json) + point live**
+  fusionnés par `combinedPoints()` ; filtre temporel calendaire (1M = 1 mois jour pour jour).
+- Table positions : colonne **Jour** (€ et % vs clôture veille, triable).
+- **Fraîcheur** dans le header (« cours mis à jour il y a X min · marché ouvert/fermé », heures Paris 8h-22h lun-ven).
+- Bloc **RÉCAP du mois** (recap.json) : perf hors apports, dividendes, top/flop 3.
+- Auto-refresh front : re-fetch data/intraday/daily toutes les 5 min + re-render.
 
 ## Données (data.json)
 3 collections : `snapshots` (date/account/value/invested), `dividends` (date/account/ticker/label/amount),

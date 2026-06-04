@@ -37,6 +37,7 @@
     <h1 class="glitch" data-text="MONEY.LUKU.FR">MONEY.LUKU.FR</h1>
     <p class="hero-tagline" id="hero-tagline">Deviens riche comme Luku</p>
     <p class="hero-sub">PEA × CTO · 420% NOSCOPE PORTFOLIO · READ&nbsp;ONLY</p>
+    <p class="freshness" id="freshness" aria-live="polite"></p>
     <div class="hero-actions">
       <div class="theme-picker">
         <button id="theme-btn" class="theme-btn" aria-haspopup="true" aria-expanded="false">
@@ -74,6 +75,7 @@
         <span class="kpi-label">📊 AUJOURD'HUI<span class="t-tt-wrap"><button class="t-tt-trigger" aria-describedby="tt-day">ℹ️</button><span class="t-tt" id="tt-day" role="tooltip">Variation de tes positions aujourd'hui, par rapport à la clôture d'hier.</span></span></span>
         <span class="kpi-value t-digit-group" data-fmt="eur">—</span>
         <span class="kpi-sub" data-sub="day"></span>
+        <div class="spark-box"><canvas id="daySpark"></canvas></div>
       </article>
       <article class="kpi card" data-kpi="gain">
         <span class="kpi-label">📈 PLUS-VALUE<span class="t-tt-wrap"><button class="t-tt-trigger" aria-describedby="tt-gain">ℹ️</button><span class="t-tt" id="tt-gain" role="tooltip">Gain par rapport à tout ce que tu as déposé (apports nets). Inclut le cash non investi et les gains/pertes déjà réalisés.</span></span></span>
@@ -89,6 +91,11 @@
         <span class="kpi-label">🎯 PERF<span class="t-tt-wrap"><button class="t-tt-trigger" aria-describedby="tt-perf">ℹ️</button><span class="t-tt" id="tt-perf" role="tooltip">Performance de tes positions actuelles depuis leur achat (comme ton courtier). Ne dépend pas des apports ni du cash.</span></span></span>
         <span class="kpi-value t-digit-group" data-fmt="pct">—</span>
         <span class="kpi-sub" data-sub="perf"></span>
+      </article>
+      <article class="kpi card" data-kpi="xirr">
+        <span class="kpi-label">🚀 TRI ANNUALISÉ<span class="t-tt-wrap"><button class="t-tt-trigger" aria-describedby="tt-xirr">ℹ️</button><span class="t-tt" id="tt-xirr" role="tooltip">Rendement annuel moyen pondéré par les dates de tes apports (XIRR). C'est LE chiffre comparable à un livret ou un fonds.</span></span></span>
+        <span class="kpi-value t-digit-group" data-fmt="pct">—</span>
+        <span class="kpi-sub" data-sub="xirr"></span>
       </article>
     </section>
 
@@ -182,6 +189,11 @@
         </div>
       </div>
 
+      <div class="card span-2" id="recap-card" hidden>
+        <h2 class="card-title">🗓️ RÉCAP <span class="muted" id="recap-month">— mois écoulé</span></h2>
+        <div class="recap-grid" id="recap"></div>
+      </div>
+
       <div class="card span-2">
         <h2 class="card-title">📰 NEWS ÉCO <span class="muted" id="news-src">— flux marché</span></h2>
         <div class="news-list" id="news"></div>
@@ -200,6 +212,7 @@
                 <th class="num sortable" data-sort="shares">Qté</th>
                 <th class="num sortable" data-sort="pru">PRU</th>
                 <th class="num sortable" data-sort="last">Cours</th>
+                <th class="num sortable" data-sort="day">Jour</th>
                 <th class="num sortable" data-sort="value">Valeur</th>
                 <th class="num sortable" data-sort="perf">+/- value</th>
               </tr>

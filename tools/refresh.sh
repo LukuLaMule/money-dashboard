@@ -55,4 +55,7 @@ if [ -f "$TR_TX" ]; then
   $PY tr_to_data.py --account cto $ARGS || echo "cto: échec (non bloquant)"
 fi
 
+# --- Enregistre la valo courante (intraday/daily) + horodatage fraîcheur ---
+$PY record_value.py || echo "record_value: échec (non bloquant)"
+
 echo "✅ refresh ($MODE) terminé : $(date)"

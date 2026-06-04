@@ -188,18 +188,27 @@ def main():
     json.dump(cache, open(cache_path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 
     # fusion non-destructive : on garde les ISIN déjà connus (ex. lignes revendues)
-    def merge_into(path, new):
+    def merge_into(path, new, deep=False):
         old = {}
         if os.path.exists(path):
             try:
                 old = json.load(open(path, encoding="utf-8"))
             except Exception:
                 old = {}
-        old.update(new)
+        if deep:
+            # fusion PAR MOIS : un fetch à range court (mode prices, 5d) ne doit pas
+            # écraser l'historique mensuel complet déjà connu pour l'ISIN
+            for k, v in new.items():
+                if isinstance(v, dict) and isinstance(old.get(k), dict):
+                    old[k].update(v)
+                else:
+                    old[k] = v
+        else:
+            old.update(new)
         return old
 
     prices = merge_into(args.out_prices, prices)
-    history = merge_into(args.out_history, history)
+    history = merge_into(args.out_history, history, deep=True)
     prev_path = os.path.join(HERE, "prices_prev.json")
     prevs = merge_into(prev_path, prevs)
     prices["_comment"] = "Cours actuels EUR par ISIN — généré par fetch_prices.py (Yahoo). Relancer pour rafraîchir."
